@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-label="G1 Healthcare Aggregator logo">
+  <defs>
+    <linearGradient id="g1teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#02C39A"/>
+      <stop offset="55%" stop-color="#00A896"/>
+      <stop offset="100%" stop-color="#0B2545"/>
+    </linearGradient>
+    <linearGradient id="g1navy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B3A63"/>
+      <stop offset="100%" stop-color="#0B2545"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon: circular swirl G -->
+  <g transform="translate(8,10)">
+    <!-- outer arcs -->
+    <path d="M50 4 C78 4 100 26 100 54 C100 82 78 100 50 100 C30 100 12 88 6 70 C12 84 28 92 46 92 C70 92 90 74 90 52 C90 30 70 12 46 12 C32 12 20 18 12 28 C18 12 32 4 50 4 Z" fill="url(#g1teal)"/>
+    <path d="M50 14 C72 14 90 30 90 54 C90 66 84 76 75 82 C82 74 86 64 86 54 C86 32 68 20 48 20 C36 20 26 25 20 32 C26 20 36 14 50 14 Z" fill="#02C39A" opacity="0.85"/>
+    <!-- wave swoosh -->
+    <path d="M4 62 C24 78 48 80 72 68 C84 62 94 54 100 46 C96 60 84 72 66 78 C44 86 20 82 4 62 Z" fill="url(#g1teal)"/>
+    <path d="M8 72 C26 84 50 84 70 74 C60 80 44 84 28 80 C20 78 12 76 8 72 Z" fill="#0B2545" opacity="0.9"/>
+    <!-- medical cross -->
+    <g transform="translate(37,36)">
+      <rect x="6" y="0" width="16" height="36" rx="2" fill="url(#g1teal)"/>
+      <rect x="0" y="10" width="28" height="16" rx="2" fill="url(#g1teal)"/>
+    </g>
+  </g>
+  <!-- Wordmark -->
+  <g font-family="Manrope, Arial, sans-serif">
+    <text x="128" y="66" font-size="52" font-weight="800" fill="#0B2545" letter-spacing="-1">G1</text>
+    <text x="130" y="90" font-size="17" font-weight="800" fill="#00A896" letter-spacing="2.5">HEALTHCARE</text>
+    <text x="130" y="108" font-size="17" font-weight="800" fill="#00A896" letter-spacing="1.5">AGGREGATOR</text>
+  </g>
+</svg>

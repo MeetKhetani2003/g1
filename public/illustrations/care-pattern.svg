@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Abstract care pattern">
+  <rect width="400" height="300" rx="24" fill="#EEF3FA"/>
+  <g fill="none" stroke="#00A896" stroke-width="2" opacity="0.35">
+    <circle cx="80" cy="90" r="46"/>
+    <circle cx="80" cy="90" r="30"/>
+    <path d="M180 60 H340 M180 90 H340 M180 120 H300" stroke-linecap="round"/>
+    <rect x="40" y="170" width="150" height="90" rx="16"/>
+    <rect x="210" y="170" width="150" height="90" rx="16"/>
+  </g>
+  <g fill="#00A896">
+    <rect x="72" y="76" width="16" height="28" rx="3"/>
+    <rect x="66" y="82" width="28" height="16" rx="3"/>
+  </g>
+  <g fill="#0B2545" opacity="0.8">
+    <circle cx="320" cy="220" r="10"/>
+    <circle cx="90" cy="215" r="6"/>
+  </g>
+</svg>

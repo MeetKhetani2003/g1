@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0B2545;
+  --color-navy-800: #13315C;
+  --color-navy-700: #1B3A63;
+  --color-navy-100: #DCE6F2;
+  --color-navy-50: #EEF3FA;
+  --color-teal-brand: #00A896;
+  --color-teal-dark: #00887A;
+  --color-teal-50: #E6F7F4;
+  --color-teal-100: #CCF0EA;
+  --color-emerald-brand: #02C39A;
+  --color-emerald-dark: #029E7D;
+  --color-cream: #F8FAFC;
+  --color-ink: #243746;
+  --color-muted: #657786;
+  --color-line: #E2E8F0;
+
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-soft: 0 4px 24px -6px rgba(11, 37, 69, 0.12);
+  --shadow-card: 0 8px 30px -8px rgba(11, 37, 69, 0.14);
+  --shadow-lift: 0 18px 48px -12px rgba(11, 37, 69, 0.22);
+
+  --animate-fade-up: fadeUp 0.6s ease-out both;
+  --animate-fade-in: fadeIn 0.5s ease-out both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: var(--color-cream);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+  color: var(--color-navy);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+/* Headings with text-white or inside dark text-white containers */
+:where(h1, h2, h3, h4, h5, h6).text-white,
+.text-white :where(h1, h2, h3, h4, h5, h6),
+.bg-navy.text-white :where(h1, h2, h3, h4, h5, h6) {
+  color: #ffffff;
+}
+
+/* Accessible focus */
+:focus-visible {
+  outline: 3px solid var(--color-teal-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-teal-brand);
+  color: #fff;
+}
+
+/* Slim elegant scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #EEF3FA; }
+::-webkit-scrollbar-thumb { background: #0B2545; border-radius: 8px; border: 2px solid #EEF3FA; }
+::-webkit-scrollbar-thumb:hover { background: #00A896; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Carousel image treatment */
+.hero-img {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Card image zoom on hover */
+.img-zoom img {
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-zoom:hover img {
+  transform: scale(1.06);
+}
+
+/* Dotted pattern for health card section */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.dot-grid-navy {
+  background-image: radial-gradient(circle, rgba(11,37,69,0.1) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+
+/* QR placeholder pattern */
+.qr-pattern {
+  background-image:
+    repeating-linear-gradient(0deg, #0B2545 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(90deg, #0B2545 0 4px, transparent 4px 8px);
+  background-size: 100% 100%;
+}
+
+/* Line clamp helpers */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hide scrollbar for horizontal scroll rows but keep accessible */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

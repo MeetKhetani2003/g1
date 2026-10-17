@@ -4,6 +4,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { AuthProvider } from "../context/AuthContext";
 import GoogleLoginModal from "../components/auth/GoogleLoginModal";
+import WhatsAppFloatingButton from "../components/common/WhatsAppButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({ children }) {
           </main>
           <Footer />
           <GoogleLoginModal />
+          <WhatsAppFloatingButton />
         </AuthProvider>
       </body>
     </html>

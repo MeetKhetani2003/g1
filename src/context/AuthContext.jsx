@@ -115,13 +115,15 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = (customClientId) => {
-    const id =
-      customClientId ||
-      (typeof window !== "undefined" ? localStorage.getItem("g1_google_client_id") : "") ||
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const customId = typeof customClientId === "string" ? customClientId.trim() : "";
+    const storedId =
+      typeof window !== "undefined" ? (localStorage.getItem("g1_google_client_id") || "").trim() : "";
+    const envId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "").trim();
 
-    if (id && id.trim().length > 10 && !id.includes("your-google-client-id")) {
-      window.location.href = `/api/auth/google?client_id=${encodeURIComponent(id.trim())}`;
+    const id = customId || storedId || envId;
+
+    if (id && id.length > 10 && !id.includes("your-google-client-id")) {
+      window.location.href = `/api/auth/google?client_id=${encodeURIComponent(id)}`;
     } else {
       window.location.href = `/api/auth/google`;
     }

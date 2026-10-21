@@ -1,4 +1,5 @@
 import HeroCarousel from "../components/home/HeroCarousel";
+import CampBanner from "../components/home/CampBanner";
 import SearchPanel from "../components/home/SearchPanel";
 import ServicesGrid from "../components/home/ServicesGrid";
 import HealthCardPreview from "../components/home/HealthCardPreview";
@@ -13,6 +14,7 @@ export default function HomePage() {
   return (
     <>
       <HeroCarousel />
+      <CampBanner />
       <SearchPanel />
       <ServicesGrid />
       <HealthCardPreview />

@@ -17,6 +17,7 @@ import {
   Loader2,
   Check,
   Image as ImageIcon,
+  User,
 } from "lucide-react";
 import { Link } from "../../utils/navigation";
 
@@ -740,6 +741,15 @@ export default function G1DigitalHealthCard({ patient, showActions = true }) {
           >
             <ExternalLink className="h-3.5 w-3.5 text-emerald-400" />
             View Live QR Dossier
+          </Link>
+
+          {/* 5. View Full Profile & All Details */}
+          <Link
+            to="/profile"
+            className="inline-flex items-center gap-1.5 rounded-full border border-teal-500/40 bg-teal-50/90 px-4 py-2.5 text-xs font-bold text-teal-900 shadow-2xs hover:bg-teal-100 transition cursor-pointer"
+          >
+            <User className="h-3.5 w-3.5 text-teal-brand" />
+            Full Profile Details
           </Link>
         </div>
       )}

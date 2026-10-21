@@ -313,6 +313,7 @@ export default function AdminDoctorsSection() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
               <tr>
+                <th className="p-4 w-20">Priority Rank</th>
                 <th className="p-4">Doctor</th>
                 <th className="p-4">Department & Qualification</th>
                 <th className="p-4">Hospital & City</th>
@@ -325,6 +326,28 @@ export default function AdminDoctorsSection() {
               {filtered.length > 0 ? (
                 filtered.map((doc) => (
                   <tr key={doc.id || doc.slug} className="hover:bg-slate-50/70 transition">
+                    {/* Priority Rank Inline Input */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400 font-bold text-xs">#</span>
+                        <input
+                          type="number"
+                          min={1}
+                          defaultValue={doc.priorityRank || ""}
+                          placeholder="—"
+                          onBlur={(e) => {
+                            const val = e.target.value;
+                            if (val) {
+                              healthStore.updateDoctorPriorityRank(doc.id, val);
+                              setDoctors(healthStore.getDoctors());
+                              showToast(`Updated rank for ${doc.name} to #${val}`);
+                            }
+                          }}
+                          className="w-12 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-black text-teal-800 text-center focus:border-teal-600 focus:outline-hidden"
+                          title="Type rank (e.g. 1) to position this doctor at the top"
+                        />
+                      </div>
+                    </td>
                     {/* Doctor Info */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">

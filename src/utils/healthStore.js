@@ -2,6 +2,17 @@
 // Centralized, reactive state store for G1 Healthcare Ecosystem
 // Persists in localStorage with realistic demonstration data
 
+import { providers as initialProviders } from "../data/providers";
+import {
+  DEFAULT_GOV_SCHEMES,
+  DEFAULT_CAMPS,
+  DEFAULT_AMBULANCES,
+  DEFAULT_LABORATORIES,
+  DEFAULT_PHARMACIES,
+  DEFAULT_REGISTRATIONS,
+  DISEASE_DIRECTORY,
+} from "../data/healthcareEcosystem";
+
 const STORAGE_KEYS = {
   PATIENT: "g1_patient_profile",
   SERVICES: "g1_services_data",
@@ -10,6 +21,15 @@ const STORAGE_KEYS = {
   STAFF: "g1_staff_data",
   BOOKINGS: "g1_bookings_data",
   DOCTORS: "g1_doctors_data",
+  PROVIDERS: "g1_providers_data",
+  GOV_SCHEMES: "g1_gov_schemes_data",
+  CAMPS: "g1_camps_data",
+  AMBULANCES: "g1_ambulances_data",
+  AMBULANCE_BOOKINGS: "g1_ambulance_bookings_data",
+  LABORATORIES: "g1_laboratories_data",
+  PHARMACIES: "g1_pharmacies_data",
+  PHARMACY_ORDERS: "g1_pharmacy_orders_data",
+  REGISTRATIONS: "g1_partner_registrations_data",
 };
 
 // Default seed data
@@ -24,6 +44,7 @@ const DEFAULT_PATIENT = {
   bloodGroup: "O+",
   dob: "1994-06-15",
   address: "42, Green Valley Enclave, Ring Road, Ahmedabad, Gujarat 380054",
+  city: "Ahmedabad",
   photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
   emergencyContact: "Vikram Sharma (+91 98250 99881 - Brother)",
   allergies: "Penicillin, Dust Mites",
@@ -31,6 +52,100 @@ const DEFAULT_PATIENT = {
   membershipTier: "Gold Life Member",
   issuedDate: "12 Oct 2024",
   validTill: "Lifetime Verified",
+  governmentSchemes: [
+    {
+      id: "sch-pmjay-01",
+      schemeId: "pmjay",
+      schemeName: "Ayushman Bharat PM-JAY",
+      cardNo: "AB-GJ-2024-984210",
+      familyId: "NFSA-GJ-449102",
+      coverageAmount: "₹5,00,000 / year",
+      status: "Active & Verified",
+      verifiedByAdmin: true,
+      validTill: "Lifetime Verified",
+      treatmentsCovered: [
+        "Cardiology & Stenting",
+        "Secondary Hospitalization",
+        "General & Laparoscopic Surgery",
+        "ICU & Critical Care",
+        "Oncology & Chemotherapy",
+        "Orthopedic Joint Replacement",
+      ],
+      customValues: {
+        "State Health ID": "GJ-AHM-9912",
+        "Ration Card Category": "Priority Household (PHH)",
+      },
+    },
+    {
+      id: "sch-maa-02",
+      schemeId: "maa",
+      schemeName: "Mukhyamantri Amrutum (MAA) Card",
+      cardNo: "MAA-2023-881920",
+      familyId: "FAM-GJ-8819",
+      coverageAmount: "₹5,00,000 / family",
+      status: "Active",
+      verifiedByAdmin: true,
+      validTill: "31 Dec 2027",
+      treatmentsCovered: [
+        "Cardiovascular Surgeries",
+        "Neuro Surgery",
+        "Burns & Polytrauma",
+        "Renal Diseases & Dialysis",
+      ],
+      customValues: {
+        District: "Ahmedabad",
+        "Income Certificate Ref": "INC-2024-4410",
+      },
+    },
+  ],
+  insurancePolicies: [
+    {
+      id: "ins-01",
+      provider: "Star Health & Allied Insurance",
+      policyNo: "SH-COMP-8829104",
+      policyType: "Family Health Optima Comprehensive Floater",
+      sumInsured: "₹10,00,000",
+      tpaDesk: "Medi Assist TPA Pvt Ltd",
+      validTill: "24 Nov 2026",
+      status: "Active (Cashless Empanelled)",
+      cashlessEligible: true,
+    },
+  ],
+  consultationHistory: [
+    {
+      id: "CONS-7821",
+      date: "14 Jan 2026",
+      doctorName: "Dr. Ananya Rao",
+      doctorImage:
+        "https://images.pexels.com/photos/7195113/pexels-photo-7195113.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+      specialty: "Internal Medicine & Diabetes",
+      mode: "Offline In-Clinic Visit",
+      hospital: "CityCare Multispecialty Hospital",
+      diagnosis: "Mild Bronchospasm & Seasonal Upper Respiratory Infection",
+      prescription: [
+        { medicine: "Tab Amoxicillin 500mg", dosage: "1-0-1 (5 Days)", instructions: "After food" },
+        { medicine: "Tab Montelukast + Levocetirizine", dosage: "0-0-1 (5 Days)", instructions: "Before bed" },
+        { medicine: "Inhaler Budecort 200mcg", dosage: "2 Puffs Twice Daily", instructions: "Rinse mouth after use" },
+      ],
+      doctorNotes: "Chest clear bilaterally on follow-up, advised steam inhalation and avoid chilled beverages.",
+    },
+    {
+      id: "CONS-7410",
+      date: "02 Dec 2025",
+      doctorName: "Dr. Rajesh K. Mehta",
+      doctorImage:
+        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80",
+      specialty: "Cardiology & Interventional Heart Care",
+      mode: "Online Video Consultation",
+      hospital: "CityCare Heart Institute",
+      diagnosis: "Routine Preventive Cardiac Screen - Stage 1 Essential Hypertension",
+      prescription: [
+        { medicine: "Tab Telmisartan 40mg", dosage: "1-0-0 (Morning)", instructions: "With water before breakfast" },
+        { medicine: "Tab Atorvastatin 10mg", dosage: "0-0-1 (Night)", instructions: "After dinner" },
+      ],
+      doctorNotes: "BP 132/86 mmHg. Advised 40 mins daily brisk walk and low sodium diet.",
+    },
+  ],
 };
 
 const DEFAULT_SERVICES = [
@@ -709,27 +824,41 @@ export const healthStore = {
   // Patient Profile
   getPatient(googleUser = null) {
     const stored = getStored(STORAGE_KEYS.PATIENT, DEFAULT_PATIENT);
-    if (!googleUser) return stored;
+    const base = {
+      ...DEFAULT_PATIENT,
+      ...stored,
+      governmentSchemes: Array.isArray(stored?.governmentSchemes) && stored.governmentSchemes.length > 0
+        ? stored.governmentSchemes
+        : DEFAULT_PATIENT.governmentSchemes,
+      insurancePolicies: Array.isArray(stored?.insurancePolicies) && stored.insurancePolicies.length > 0
+        ? stored.insurancePolicies
+        : DEFAULT_PATIENT.insurancePolicies,
+      consultationHistory: Array.isArray(stored?.consultationHistory) && stored.consultationHistory.length > 0
+        ? stored.consultationHistory
+        : DEFAULT_PATIENT.consultationHistory,
+    };
+
+    if (!googleUser) return base;
 
     // A custom uploaded photo (GridFS, base64, or explicit upload) must take absolute priority
     const hasCustomPhoto =
-      stored.isCustomPhoto === true ||
-      (stored.photo &&
-        (stored.photo.startsWith("/api/files") ||
-          stored.photo.startsWith("data:") ||
-          (stored.photo !== DEFAULT_PATIENT.photo && stored.photo !== googleUser.picture)));
+      base.isCustomPhoto === true ||
+      (base.photo &&
+        (base.photo.startsWith("/api/files") ||
+          base.photo.startsWith("data:") ||
+          (base.photo !== DEFAULT_PATIENT.photo && base.photo !== googleUser.picture)));
 
     const activePhoto = hasCustomPhoto
-      ? stored.photo
-      : (googleUser.picture || stored.photo);
+      ? base.photo
+      : (googleUser.picture || base.photo);
 
     return {
-      ...stored,
-      name: stored.name || googleUser.name,
-      email: googleUser.email || stored.email,
+      ...base,
+      name: base.name || googleUser.name,
+      email: googleUser.email || base.email,
       photo: activePhoto,
-      healthId: stored.healthId || googleUser.healthId,
-      phone: stored.phone || googleUser.phone,
+      healthId: base.healthId || googleUser.healthId,
+      phone: base.phone || googleUser.phone,
     };
   },
 
@@ -904,9 +1033,15 @@ export const healthStore = {
     return updated;
   },
 
-  // Doctors Management
+  // Doctors Management & Priority Ranking
   getDoctors() {
-    return getStored(STORAGE_KEYS.DOCTORS, DEFAULT_DOCTORS);
+    const doctors = getStored(STORAGE_KEYS.DOCTORS, DEFAULT_DOCTORS);
+    return [...doctors].sort((a, b) => {
+      const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+      const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.rating || 0) - (a.rating || 0);
+    });
   },
 
   getDoctorBySlug(slug) {
@@ -915,7 +1050,7 @@ export const healthStore = {
   },
 
   saveDoctor(doctorData) {
-    const doctors = healthStore.getDoctors();
+    const doctors = getStored(STORAGE_KEYS.DOCTORS, DEFAULT_DOCTORS);
     const idx = doctors.findIndex((d) => d.id === doctorData.id || d.slug === doctorData.slug);
     let updated;
     if (idx >= 0) {
@@ -933,6 +1068,7 @@ export const healthStore = {
         rating: doctorData.rating || 4.9,
         reviewsCount: doctorData.reviewsCount || 0,
         timingSlots: doctorData.timingSlots || ["10:00 AM", "11:30 AM", "02:30 PM", "04:30 PM"],
+        priorityRank: doctorData.priorityRank || doctors.length + 1,
       };
       updated = [newDoctor, ...doctors];
     }
@@ -940,10 +1076,484 @@ export const healthStore = {
     return updated;
   },
 
+  updateDoctorPriorityRank(doctorId, rank) {
+    const doctors = getStored(STORAGE_KEYS.DOCTORS, DEFAULT_DOCTORS);
+    const updated = doctors.map((d) =>
+      d.id === doctorId || d.slug === doctorId ? { ...d, priorityRank: Number(rank) } : d
+    );
+    setStored(STORAGE_KEYS.DOCTORS, updated);
+    return updated;
+  },
+
   deleteDoctor(doctorId) {
-    const doctors = healthStore.getDoctors();
+    const doctors = getStored(STORAGE_KEYS.DOCTORS, DEFAULT_DOCTORS);
     const filtered = doctors.filter((d) => d.id !== doctorId && d.slug !== doctorId);
     setStored(STORAGE_KEYS.DOCTORS, filtered);
     return filtered;
   },
+
+  // Booking Status Management (including 'Consulted')
+  updateBookingStatus(id, newStatus, extraData = {}) {
+    return healthStore.updateBooking(id, {
+      status: newStatus,
+      ...extraData,
+      statusUpdatedAt: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+    });
+  },
+
+  // Providers / Hospitals Management & Priority Ranking
+  getProviders() {
+    const seeded = initialProviders.map((p, i) => ({
+      ...p,
+      priorityRank: p.priorityRank || i + 1,
+    }));
+    const providers = getStored(STORAGE_KEYS.PROVIDERS, seeded);
+    return [...providers].sort((a, b) => {
+      const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+      const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  },
+
+  saveProvider(providerData) {
+    const providers = healthStore.getProviders();
+    const idx = providers.findIndex((p) => p.id === providerData.id);
+    let updated;
+    if (idx >= 0) {
+      updated = [...providers];
+      updated[idx] = { ...updated[idx], ...providerData };
+    } else {
+      const newProvider = {
+        ...providerData,
+        id: providerData.id || `p-${Date.now()}`,
+        priorityRank: providerData.priorityRank || providers.length + 1,
+      };
+      updated = [newProvider, ...providers];
+    }
+    setStored(STORAGE_KEYS.PROVIDERS, updated);
+    return updated;
+  },
+
+  updateProviderPriorityRank(providerId, rank) {
+    const providers = healthStore.getProviders();
+    const updated = providers.map((p) =>
+      p.id === providerId ? { ...p, priorityRank: Number(rank) } : p
+    );
+    setStored(STORAGE_KEYS.PROVIDERS, updated);
+    return updated;
+  },
+
+  // Government Healthcare Schemes
+  getGovSchemes() {
+    return getStored(STORAGE_KEYS.GOV_SCHEMES, DEFAULT_GOV_SCHEMES);
+  },
+
+  saveGovScheme(schemeData) {
+    const schemes = healthStore.getGovSchemes();
+    const idx = schemes.findIndex((s) => s.id === schemeData.id || s.slug === schemeData.slug);
+    let updated;
+    if (idx >= 0) {
+      updated = [...schemes];
+      updated[idx] = { ...updated[idx], ...schemeData };
+    } else {
+      const newScheme = {
+        ...schemeData,
+        id: schemeData.id || `sch-${Date.now()}`,
+        slug: schemeData.slug || schemeData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      };
+      updated = [newScheme, ...schemes];
+    }
+    setStored(STORAGE_KEYS.GOV_SCHEMES, updated);
+    return updated;
+  },
+
+  deleteGovScheme(id) {
+    const schemes = healthStore.getGovSchemes();
+    const filtered = schemes.filter((s) => s.id !== id && s.slug !== id);
+    setStored(STORAGE_KEYS.GOV_SCHEMES, filtered);
+    return filtered;
+  },
+
+  // Patient Scheme & Insurance Linking
+  addSchemeToPatient(schemePayload) {
+    const patient = healthStore.getPatient();
+    const existing = patient.governmentSchemes || [];
+    const newRecord = {
+      ...schemePayload,
+      id: schemePayload.id || `sch-pat-${Date.now()}`,
+      assignedAt: new Date().toLocaleDateString("en-IN"),
+      status: schemePayload.status || "Active & Verified",
+    };
+    const updatedSchemes = [newRecord, ...existing];
+    return healthStore.updatePatient({ governmentSchemes: updatedSchemes });
+  },
+
+  removeSchemeFromPatient(schemeRecordId) {
+    const patient = healthStore.getPatient();
+    const existing = patient.governmentSchemes || [];
+    const updatedSchemes = existing.filter((s) => s.id !== schemeRecordId);
+    return healthStore.updatePatient({ governmentSchemes: updatedSchemes });
+  },
+
+  addInsuranceToPatient(policyPayload) {
+    const patient = healthStore.getPatient();
+    const existing = patient.insurancePolicies || [];
+    const newRecord = {
+      ...policyPayload,
+      id: policyPayload.id || `ins-pat-${Date.now()}`,
+      addedAt: new Date().toLocaleDateString("en-IN"),
+      status: policyPayload.status || "Active (Cashless)",
+    };
+    const updatedPolicies = [newRecord, ...existing];
+    return healthStore.updatePatient({ insurancePolicies: updatedPolicies });
+  },
+
+  removeInsuranceFromPatient(policyId) {
+    const patient = healthStore.getPatient();
+    const existing = patient.insurancePolicies || [];
+    const updatedPolicies = existing.filter((p) => p.id !== policyId);
+    return healthStore.updatePatient({ insurancePolicies: updatedPolicies });
+  },
+
+  addConsultationToPatient(consultationPayload) {
+    const patient = healthStore.getPatient();
+    const existing = patient.consultationHistory || [];
+    const newRecord = {
+      ...consultationPayload,
+      id: consultationPayload.id || `CONS-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: consultationPayload.date || new Date().toLocaleDateString("en-IN", { dateStyle: "medium" }),
+    };
+    const updatedHistory = [newRecord, ...existing];
+    return healthStore.updatePatient({ consultationHistory: updatedHistory });
+  },
+
+  // Health Camps Management
+  getCamps() {
+    return getStored(STORAGE_KEYS.CAMPS, DEFAULT_CAMPS);
+  },
+
+  getActiveCamps() {
+    const camps = healthStore.getCamps();
+    const now = new Date();
+    return camps.filter((c) => {
+      if (c.status === "Cancelled" || c.status === "Completed") return false;
+      const end = new Date(c.endDate);
+      // End date check: if valid date, must be today or future
+      if (!isNaN(end.getTime())) {
+        // Set end time to end of day 23:59:59
+        end.setHours(23, 59, 59, 999);
+        return end >= now;
+      }
+      return true;
+    });
+  },
+
+  saveCamp(campData) {
+    const camps = healthStore.getCamps();
+    const idx = camps.findIndex((c) => c.id === campData.id);
+    let updated;
+    if (idx >= 0) {
+      updated = [...camps];
+      updated[idx] = { ...updated[idx], ...campData };
+    } else {
+      const newCamp = {
+        ...campData,
+        id: campData.id || `camp-${Date.now()}`,
+        status: campData.status || "Active",
+        registeredCount: campData.registeredCount || 0,
+        newRegistrationsCount: campData.newRegistrationsCount || 0,
+        attendees: campData.attendees || [],
+      };
+      updated = [newCamp, ...camps];
+    }
+    setStored(STORAGE_KEYS.CAMPS, updated);
+    return updated;
+  },
+
+  deleteCamp(campId) {
+    const camps = healthStore.getCamps();
+    const filtered = camps.filter((c) => c.id !== campId);
+    setStored(STORAGE_KEYS.CAMPS, filtered);
+    return filtered;
+  },
+
+  registerCampAttendee(campId, attendeeData) {
+    const camps = healthStore.getCamps();
+    const newAttendee = {
+      id: `att-${Date.now()}`,
+      name: attendeeData.name,
+      phone: attendeeData.phone,
+      healthId: attendeeData.healthId || `G1-${Math.floor(100000 + Math.random() * 900000)}`,
+      registeredAt: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+      attended: false,
+      isNewUser: Boolean(attendeeData.isNewUser),
+      notes: attendeeData.notes || "",
+    };
+
+    const updated = camps.map((camp) => {
+      if (camp.id === campId) {
+        const attendees = camp.attendees || [];
+        return {
+          ...camp,
+          registeredCount: (camp.registeredCount || 0) + 1,
+          newRegistrationsCount: attendeeData.isNewUser
+            ? (camp.newRegistrationsCount || 0) + 1
+            : (camp.newRegistrationsCount || 0),
+          attendees: [newAttendee, ...attendees],
+        };
+      }
+      return camp;
+    });
+
+    setStored(STORAGE_KEYS.CAMPS, updated);
+    return newAttendee;
+  },
+
+  // Ambulances Fleet & Emergency Management
+  getAmbulances() {
+    const ambulances = getStored(STORAGE_KEYS.AMBULANCES, DEFAULT_AMBULANCES);
+    return [...ambulances].sort((a, b) => {
+      const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+      const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  },
+
+  saveAmbulance(ambulanceData) {
+    const ambulances = getStored(STORAGE_KEYS.AMBULANCES, DEFAULT_AMBULANCES);
+    const idx = ambulances.findIndex((a) => a.id === ambulanceData.id);
+    let updated;
+    if (idx >= 0) {
+      updated = [...ambulances];
+      updated[idx] = { ...updated[idx], ...ambulanceData };
+    } else {
+      const newAmb = {
+        ...ambulanceData,
+        id: ambulanceData.id || `amb-${Date.now()}`,
+        status: ambulanceData.status || "Available 24x7",
+        priorityRank: ambulanceData.priorityRank || ambulances.length + 1,
+      };
+      updated = [newAmb, ...ambulances];
+    }
+    setStored(STORAGE_KEYS.AMBULANCES, updated);
+    return updated;
+  },
+
+  deleteAmbulance(ambulanceId) {
+    const ambulances = getStored(STORAGE_KEYS.AMBULANCES, DEFAULT_AMBULANCES);
+    const filtered = ambulances.filter((a) => a.id !== ambulanceId);
+    setStored(STORAGE_KEYS.AMBULANCES, filtered);
+    return filtered;
+  },
+
+  bookAmbulance(bookingPayload) {
+    const bookings = healthStore.getAmbulanceBookings();
+    const newBooking = {
+      ...bookingPayload,
+      id: `AMB-REQ-${Math.floor(1000 + Math.random() * 9000)}`,
+      requestedAt: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+      status: "Dispatched - Driver Assigned",
+    };
+    const updated = [newBooking, ...bookings];
+    setStored(STORAGE_KEYS.AMBULANCE_BOOKINGS, updated);
+    return newBooking;
+  },
+
+  getAmbulanceBookings() {
+    return getStored(STORAGE_KEYS.AMBULANCE_BOOKINGS, [
+      {
+        id: "AMB-REQ-4820",
+        ambulanceId: "amb-01",
+        vehicleNumber: "GJ-01-AX-1088",
+        hospitalAffiliation: "CityCare Multispecialty Hospital",
+        patientName: "Rameshwar Patel",
+        phone: "+91 98980 12345",
+        pickupAddress: "Flat 402, Shivam Residency, Bodakdev, Ahmedabad",
+        destinationHospital: "CityCare Emergency Trauma Wing",
+        emergencyType: "Cardiac Chest Pain & Breathlessness",
+        requestedAt: "2026-10-21 09:30 AM",
+        status: "Completed - Patient Admitted",
+      },
+    ]);
+  },
+
+  updateAmbulanceBookingStatus(id, newStatus) {
+    const bookings = healthStore.getAmbulanceBookings();
+    const updated = bookings.map((b) => (b.id === id ? { ...b, status: newStatus } : b));
+    setStored(STORAGE_KEYS.AMBULANCE_BOOKINGS, updated);
+    return updated;
+  },
+
+  // Deliverable Services: Laboratories Management & Priority Ranking
+  getLaboratories() {
+    const labs = getStored(STORAGE_KEYS.LABORATORIES, DEFAULT_LABORATORIES);
+    return [...labs].sort((a, b) => {
+      const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+      const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  },
+
+  getLaboratoryById(id) {
+    const labs = healthStore.getLaboratories();
+    return labs.find((l) => l.id === id) || null;
+  },
+
+  saveLaboratory(labData) {
+    const labs = getStored(STORAGE_KEYS.LABORATORIES, DEFAULT_LABORATORIES);
+    const idx = labs.findIndex((l) => l.id === labData.id);
+    let updated;
+    if (idx >= 0) {
+      updated = [...labs];
+      updated[idx] = { ...updated[idx], ...labData };
+    } else {
+      const newLab = {
+        ...labData,
+        id: labData.id || `lab-${Date.now()}`,
+        priorityRank: labData.priorityRank || labs.length + 1,
+        tests: labData.tests || [],
+      };
+      updated = [newLab, ...labs];
+    }
+    setStored(STORAGE_KEYS.LABORATORIES, updated);
+    return updated;
+  },
+
+  updateLabPriorityRank(labId, rank) {
+    const labs = getStored(STORAGE_KEYS.LABORATORIES, DEFAULT_LABORATORIES);
+    const updated = labs.map((l) => (l.id === labId ? { ...l, priorityRank: Number(rank) } : l));
+    setStored(STORAGE_KEYS.LABORATORIES, updated);
+    return updated;
+  },
+
+  deleteLaboratory(labId) {
+    const labs = getStored(STORAGE_KEYS.LABORATORIES, DEFAULT_LABORATORIES);
+    const filtered = labs.filter((l) => l.id !== labId);
+    setStored(STORAGE_KEYS.LABORATORIES, filtered);
+    return filtered;
+  },
+
+  // Deliverable Services: Medical Stores / Pharmacies Management
+  getPharmacies() {
+    const pharmacies = getStored(STORAGE_KEYS.PHARMACIES, DEFAULT_PHARMACIES);
+    return [...pharmacies].sort((a, b) => {
+      const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+      const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  },
+
+  getPharmacyById(id) {
+    const pharmacies = healthStore.getPharmacies();
+    return pharmacies.find((p) => p.id === id) || null;
+  },
+
+  savePharmacy(pharmacyData) {
+    const pharmacies = getStored(STORAGE_KEYS.PHARMACIES, DEFAULT_PHARMACIES);
+    const idx = pharmacies.findIndex((p) => p.id === pharmacyData.id);
+    let updated;
+    if (idx >= 0) {
+      updated = [...pharmacies];
+      updated[idx] = { ...updated[idx], ...pharmacyData };
+    } else {
+      const newPharm = {
+        ...pharmacyData,
+        id: pharmacyData.id || `pharm-${Date.now()}`,
+        priorityRank: pharmacyData.priorityRank || pharmacies.length + 1,
+      };
+      updated = [newPharm, ...pharmacies];
+    }
+    setStored(STORAGE_KEYS.PHARMACIES, updated);
+    return updated;
+  },
+
+  deletePharmacy(pharmacyId) {
+    const pharmacies = getStored(STORAGE_KEYS.PHARMACIES, DEFAULT_PHARMACIES);
+    const filtered = pharmacies.filter((p) => p.id !== pharmacyId);
+    setStored(STORAGE_KEYS.PHARMACIES, filtered);
+    return filtered;
+  },
+
+  savePharmacyOrder(orderData) {
+    const orders = healthStore.getPharmacyOrders();
+    const newOrder = {
+      ...orderData,
+      id: `MED-ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      orderedAt: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+      status: "Order Confirmed - Packaging",
+    };
+    const updated = [newOrder, ...orders];
+    setStored(STORAGE_KEYS.PHARMACY_ORDERS, updated);
+    return newOrder;
+  },
+
+  getPharmacyOrders() {
+    return getStored(STORAGE_KEYS.PHARMACY_ORDERS, [
+      {
+        id: "MED-ORD-9102",
+        pharmacyName: "WellServe 24x7 Express Medical Store",
+        patientName: "Dr. Ananya Sharma",
+        phone: "+91 98765 43210",
+        medicines: ["Telmisartan 40mg (10 tabs)", "Atorvastatin 10mg (15 tabs)"],
+        totalAmount: 231,
+        orderedAt: "2026-10-21 10:15 AM",
+        deliveryAddress: "42, Green Valley Enclave, Ahmedabad",
+        status: "Delivered (Cash on Delivery)",
+      },
+    ]);
+  },
+
+  // Multi-Role Partner & Member Registrations
+  getRegistrations() {
+    return getStored(STORAGE_KEYS.REGISTRATIONS, DEFAULT_REGISTRATIONS);
+  },
+
+  saveRegistration(regPayload) {
+    const regs = healthStore.getRegistrations();
+    const refId = `G1-REG-${Math.floor(10000 + Math.random() * 90000)}`;
+    const newReg = {
+      ...regPayload,
+      id: `reg-${Date.now()}`,
+      refId,
+      submittedAt: new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }),
+      status: "Verified",
+    };
+    const updated = [newReg, ...regs];
+    setStored(STORAGE_KEYS.REGISTRATIONS, updated);
+
+    // If registering as a patient, also update patient profile
+    if (regPayload.role === "patient") {
+      healthStore.updatePatient({
+        name: regPayload.name,
+        phone: regPayload.phone,
+        email: regPayload.email,
+        city: regPayload.city,
+        address: regPayload.address,
+        ...(regPayload.roleDetails || {}),
+      });
+    }
+
+    return newReg;
+  },
+
+  updateRegistrationStatus(id, newStatus) {
+    const regs = healthStore.getRegistrations();
+    const updated = regs.map((r) => (r.id === id ? { ...r, status: newStatus } : r));
+    setStored(STORAGE_KEYS.REGISTRATIONS, updated);
+    return updated;
+  },
+
+  // Disease to Doctor & Hospital Directory ("Bimari & Uska Doctor")
+  getDiseases() {
+    return DISEASE_DIRECTORY;
+  },
+
+  getDiseaseBySlug(slug) {
+    return DISEASE_DIRECTORY.find((d) => d.slug === slug || d.id === slug) || null;
+  },
 };
+

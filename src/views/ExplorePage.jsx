@@ -11,6 +11,7 @@ import DemoModal from "../components/ui/DemoModal";
 import DoctorBookingModal from "../components/booking/DoctorBookingModal";
 import FacilityServiceBookingModal from "../components/booking/FacilityServiceBookingModal";
 import { cn } from "../utils/cn";
+import { healthStore } from "../utils/healthStore";
 
 export default function ExplorePage() {
   const [params, setParams] = useSearchParams();
@@ -20,6 +21,7 @@ export default function ExplorePage() {
   const [openOnly, setOpenOnly] = useState(false);
   const [sort, setSort] = useState("rating");
   const [loading, setLoading] = useState(true);
+  const [providerList, setProviderList] = useState([]);
   const [modal, setModal] = useState({ open: false, mode: "details", provider: null });
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [selectedFacilityForBooking, setSelectedFacilityForBooking] = useState(null);
@@ -32,10 +34,22 @@ export default function ExplorePage() {
     }
   };
 
+  // Load from healthStore and listen for live updates
+  useEffect(() => {
+    const load = () => {
+      const stored = healthStore.getProviders();
+      setProviderList(stored && stored.length > 0 ? stored : providers);
+    };
+    load();
+    const handleUpdate = () => load();
+    window.addEventListener("g1-store-update", handleUpdate);
+    return () => window.removeEventListener("g1-store-update", handleUpdate);
+  }, []);
+
   // Simulate initial load
   useEffect(() => {
     setLoading(true);
-    const t = setTimeout(() => setLoading(false), 700);
+    const t = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(t);
   }, []);
 
@@ -50,24 +64,37 @@ export default function ExplorePage() {
   }, [category, city, query]);
 
   const filtered = useMemo(() => {
-    let list = providers.filter((p) => {
-      const matchCat = category === "All" || p.category === category;
+    const activeProviders = providerList.length > 0 ? providerList : providers;
+    let list = activeProviders.filter((p) => {
+      const matchCat = category === "All" || p.category === category || p.type === category;
       const matchCity = city === "All Cities" || p.city === city;
       const q = query.trim().toLowerCase();
       const matchQ =
         !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.specialty.toLowerCase().includes(q) ||
-        p.type.toLowerCase().includes(q) ||
-        p.city.toLowerCase().includes(q);
-      const matchOpen = !openOnly || p.openNow;
+        p.name?.toLowerCase().includes(q) ||
+        (typeof p.specialty === "string" && p.specialty.toLowerCase().includes(q)) ||
+        (Array.isArray(p.specialties) && p.specialties.some((s) => s.toLowerCase().includes(q))) ||
+        p.type?.toLowerCase().includes(q) ||
+        p.city?.toLowerCase().includes(q);
+      const matchOpen = !openOnly || p.openNow || p.emergency24x7;
       return matchCat && matchCity && matchQ && matchOpen;
     });
-    if (sort === "rating") list = [...list].sort((a, b) => b.rating - a.rating);
-    if (sort === "reviews") list = [...list].sort((a, b) => b.reviews - a.reviews);
-    if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+
+    if (sort === "rating") {
+      // Respect admin priorityRank (1, 2, 3...) first, then rating
+      list = [...list].sort((a, b) => {
+        const rankA = a.priorityRank ? Number(a.priorityRank) : 9999;
+        const rankB = b.priorityRank ? Number(b.priorityRank) : 9999;
+        if (rankA !== rankB) return rankA - rankB;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+    } else if (sort === "reviews") {
+      list = [...list].sort((a, b) => (b.reviewsCount || b.reviews || 0) - (a.reviewsCount || a.reviews || 0));
+    } else if (sort === "name") {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+    }
     return list;
-  }, [category, city, query, openOnly, sort]);
+  }, [providerList, category, city, query, openOnly, sort]);
 
   const reset = () => {
     setCategory("All");

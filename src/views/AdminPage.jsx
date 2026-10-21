@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   IdCard,
   Stethoscope,
+  Building2,
   FlaskConical,
   Users,
   CreditCard,
@@ -31,19 +32,32 @@ import {
   MessageCircle,
   LogOut,
   Loader2,
+  ShieldCheck,
+  Truck,
+  CalendarDays,
+  UserPlus,
+  Video,
+  Activity,
+  FileCheck,
 } from "lucide-react";
 import { healthStore } from "../utils/healthStore";
 import G1DigitalHealthCard from "../components/health-card/G1DigitalHealthCard";
 import { Link } from "../utils/navigation";
 import AdminLoginGate from "../components/admin/AdminLoginGate";
 import AdminDoctorsSection from "../components/admin/AdminDoctorsSection";
+import AdminGovSchemesSection from "../components/admin/AdminGovSchemesSection";
+import AdminProvidersRankingSection from "../components/admin/AdminProvidersRankingSection";
+import AdminAmbulancesSection from "../components/admin/AdminAmbulancesSection";
+import AdminCampsSection from "../components/admin/AdminCampsSection";
+import AdminDeliverablesSection from "../components/admin/AdminDeliverablesSection";
+import AdminRegistrationsSection from "../components/admin/AdminRegistrationsSection";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [adminUser, setAdminUser] = useState(null);
 
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | healthcards | doctors | services | labtests | staff | bookings
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   // Store data states
   const [patient, setPatient] = useState(null);
@@ -52,6 +66,8 @@ export default function AdminPage() {
   const [labInquiries, setLabInquiries] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [govSchemes, setGovSchemes] = useState([]);
+  const [doctorsList, setDoctorsList] = useState([]);
 
   // Inspection & Modal states
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -60,8 +76,40 @@ export default function AdminPage() {
   const [labTestModal, setLabTestModal] = useState({ open: false, test: null });
   const [staffModal, setStaffModal] = useState({ open: false, member: null });
 
-  // Filters
+  // Patient Health Card management modals
+  const [linkSchemeModal, setLinkSchemeModal] = useState({
+    open: false,
+    schemeId: "",
+    cardNumber: "",
+    balance: "₹5,00,000 / year",
+    validTill: "2027-12-31",
+    treatmentsInput: "",
+  });
+  const [addInsuranceModal, setAddInsuranceModal] = useState({
+    open: false,
+    provider: "Star Health & Allied Insurance",
+    policyNumber: "G1-POL-88219",
+    sumInsured: "₹10,00,000",
+    type: "Family Floater Cashless Mediclaim",
+    tpa: "Medi Assist TPA Desk",
+  });
+  const [addConsultationModal, setAddConsultationModal] = useState({
+    open: false,
+    doctorName: "Dr. Arvind Mehta",
+    specialty: "Cardiology",
+    disease: "Chest Pain / Hypertension",
+    mode: "In-Clinic OPD",
+    date: "2026-10-21",
+    medicinesInput: "Tab Telmisartan 40mg (1 OD), Tab Aspirin 75mg (1 OD)",
+    advice: "Follow low-sodium diet and daily BP log",
+  });
+
+  // Filters for CRM Bookings
   const [bookingFilter, setBookingFilter] = useState("ALL"); // ALL | PAID | FAILED_LEAD
+  const [doctorFilter, setDoctorFilter] = useState("ALL");
+  const [diseaseFilter, setDiseaseFilter] = useState("");
+  const [modeFilter, setModeFilter] = useState("ALL"); // ALL | ONLINE | OFFLINE
+  const [consultedFilter, setConsultedFilter] = useState("ALL"); // ALL | CONSULTED | PENDING
   const [searchTerm, setSearchTerm] = useState("");
 
   const refreshAll = () => {
@@ -71,6 +119,8 @@ export default function AdminPage() {
     setLabInquiries(healthStore.getLabInquiries());
     setStaffList(healthStore.getStaff());
     setBookings(healthStore.getBookings());
+    setGovSchemes(healthStore.getGovSchemes());
+    setDoctorsList(healthStore.getDoctors());
   };
 
   useEffect(() => {
@@ -139,15 +189,31 @@ export default function AdminPage() {
   const totalPaidBookings = bookings.filter((b) => b.paymentStatus === "PAID").length;
   const totalFailedLeads = bookings.filter((b) => b.paymentStatus === "FAILED_LEAD").length;
 
-  // Filtered bookings
+  // Filtered bookings with Doctor, Disease, Mode, and Consulted filters
   const filteredBookings = bookings.filter((b) => {
     const matchFilter = bookingFilter === "ALL" || b.paymentStatus === bookingFilter;
+    const matchDoc = doctorFilter === "ALL" || b.doctorId === doctorFilter || b.doctorName === doctorFilter;
+    const matchDisease =
+      !diseaseFilter ||
+      (b.disease && b.disease.toLowerCase().includes(diseaseFilter.toLowerCase())) ||
+      (b.serviceTitle && b.serviceTitle.toLowerCase().includes(diseaseFilter.toLowerCase()));
+    const bMode = (b.consultationMode || b.mode || "offline").toLowerCase();
+    const matchMode =
+      modeFilter === "ALL" ||
+      (modeFilter === "ONLINE"
+        ? bMode.includes("online") || bMode.includes("video")
+        : !bMode.includes("online") && !bMode.includes("video"));
+    const matchConsulted =
+      consultedFilter === "ALL" ||
+      (consultedFilter === "CONSULTED" ? Boolean(b.isConsulted) : !b.isConsulted);
     const matchSearch =
+      !searchTerm ||
       b.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.serviceTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.phone?.includes(searchTerm);
-    return matchFilter && matchSearch;
+
+    return matchFilter && matchDoc && matchDisease && matchMode && matchConsulted && matchSearch;
   });
 
   return (
@@ -165,7 +231,7 @@ export default function AdminPage() {
           </div>
 
           {/* Navigation Links */}
-          <nav className="mt-6 space-y-1.5 text-xs font-bold">
+          <nav className="mt-5 space-y-1 text-xs font-bold">
             <button
               type="button"
               onClick={() => setActiveTab("dashboard")}
@@ -205,12 +271,72 @@ export default function AdminPage() {
 
             <button
               type="button"
+              onClick={() => setActiveTab("govschemes")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "govschemes" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4 text-emerald-400" /> Govt Schemes Manager
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab("doctors")}
               className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
                 activeTab === "doctors" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
               }`}
             >
-              <Stethoscope className="h-4 w-4" /> Doctors Directory & Fees
+              <Stethoscope className="h-4 w-4 text-cyan-300" /> Doctors & Priority Rank
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("providers")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "providers" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <Building2 className="h-4 w-4 text-blue-300" /> Hospitals & Ranking
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("ambulances")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "ambulances" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <Truck className="h-4 w-4 text-red-400" /> Ambulances & 24x7 Fleet
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("camps")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "camps" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <CalendarDays className="h-4 w-4 text-amber-300" /> Health Camps Outreach
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("deliverables")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "deliverables" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <FlaskConical className="h-4 w-4 text-purple-300" /> Labs & Medical Stores
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("registrations")}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 transition ${
+                activeTab === "registrations" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
+              }`}
+            >
+              <UserPlus className="h-4 w-4 text-rose-300" /> Multi-Role Registrations
             </button>
 
             <button
@@ -220,7 +346,7 @@ export default function AdminPage() {
                 activeTab === "services" ? "bg-teal-600 text-white shadow-sm" : "text-white/70 hover:bg-white/10"
               }`}
             >
-              <Building2 className="h-4 w-4" /> Services & Triage Builder
+              <Activity className="h-4 w-4" /> Services & Triage Builder
             </button>
 
             <button
@@ -231,7 +357,7 @@ export default function AdminPage() {
               }`}
             >
               <span className="flex items-center gap-3">
-                <FlaskConical className="h-4 w-4" /> Lab Tests & Inquiries
+                <FlaskConical className="h-4 w-4" /> Pathology Catalogs
               </span>
               <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">
                 {labInquiries.length}
@@ -449,16 +575,16 @@ export default function AdminPage() {
               <div>
                 <h1 className="font-display text-2xl font-black text-navy">Bookings & Recovered Leads CRM</h1>
                 <p className="text-xs text-slate-500">
-                  Every patient inquiry is captured here with complete clinical triage questionnaire answers.
+                  Track online video vs offline clinic consultations, filter by doctor or disease, and record consultation completion.
                 </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setBookingFilter("ALL")}
-                  className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-                    bookingFilter === "ALL" ? "bg-navy text-white" : "bg-white border text-slate-600"
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                    bookingFilter === "ALL" ? "bg-navy text-white" : "bg-white border text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   All ({bookings.length})
@@ -466,8 +592,8 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setBookingFilter("PAID")}
-                  className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-                    bookingFilter === "PAID" ? "bg-emerald-700 text-white" : "bg-white border text-emerald-700"
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                    bookingFilter === "PAID" ? "bg-emerald-700 text-white" : "bg-white border text-emerald-700 hover:bg-emerald-50"
                   }`}
                 >
                   Paid ({totalPaidBookings})
@@ -475,12 +601,68 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setBookingFilter("FAILED_LEAD")}
-                  className={`rounded-full px-4 py-1.5 text-xs font-bold ${
-                    bookingFilter === "FAILED_LEAD" ? "bg-amber-600 text-white" : "bg-white border text-amber-700"
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                    bookingFilter === "FAILED_LEAD" ? "bg-amber-600 text-white" : "bg-white border text-amber-700 hover:bg-amber-50"
                   }`}
                 >
                   Failed Leads ({totalFailedLeads})
                 </button>
+              </div>
+            </div>
+
+            {/* Advanced Filters: Doctor, Disease, Mode, Consulted Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-2xl bg-white p-4 border border-slate-200 text-xs shadow-xs">
+              <div>
+                <label className="font-bold text-slate-600 block mb-1">Filter by Doctor</label>
+                <select
+                  value={doctorFilter}
+                  onChange={(e) => setDoctorFilter(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2 font-semibold text-navy focus:border-teal-600 focus:outline-hidden"
+                >
+                  <option value="ALL">All Doctors ({doctorsList.length})</option>
+                  {doctorsList.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} ({d.specialty})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-600 block mb-1">Filter by Disease / Condition</label>
+                <input
+                  type="text"
+                  value={diseaseFilter}
+                  onChange={(e) => setDiseaseFilter(e.target.value)}
+                  placeholder="e.g. Chest Pain, Diabetes..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2 font-medium text-navy focus:border-teal-600 focus:outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-600 block mb-1">Consultation Mode</label>
+                <select
+                  value={modeFilter}
+                  onChange={(e) => setModeFilter(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2 font-semibold text-navy focus:border-teal-600 focus:outline-hidden"
+                >
+                  <option value="ALL">All Modes (Online & Offline)</option>
+                  <option value="ONLINE">Online Video Call</option>
+                  <option value="OFFLINE">Offline In-Clinic / OPD</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-600 block mb-1">Consultation Status</label>
+                <select
+                  value={consultedFilter}
+                  onChange={(e) => setConsultedFilter(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2 font-semibold text-navy focus:border-teal-600 focus:outline-hidden"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="CONSULTED">Consulted ✓</option>
+                  <option value="PENDING">Pending Consultation</option>
+                </select>
               </div>
             </div>
 
@@ -493,58 +675,116 @@ export default function AdminPage() {
                       <th className="p-4">Booking ID</th>
                       <th className="p-4">Patient & Health ID</th>
                       <th className="p-4">Contact Phone</th>
-                      <th className="p-4">Service & Package</th>
+                      <th className="p-4">Doctor & Disease</th>
+                      <th className="p-4">Mode</th>
                       <th className="p-4">Amount</th>
-                      <th className="p-4">Payment Status</th>
-                      <th className="p-4">Diagnostic Triage</th>
+                      <th className="p-4">Payment</th>
+                      <th className="p-4">Consultation Status</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredBookings.map((b) => (
-                      <tr key={b.id} className="hover:bg-slate-50/70 transition">
-                        <td className="p-4 font-mono font-bold text-teal-700">{b.id}</td>
-                        <td className="p-4">
-                          <p className="font-bold text-navy">{b.patientName}</p>
-                          <span className="font-mono text-[10px] text-slate-500">{b.patientHealthId || b.patientId}</span>
-                        </td>
-                        <td className="p-4 font-medium text-slate-700">{b.patientPhone || b.phone}</td>
-                        <td className="p-4">
-                          <p className="font-bold text-navy">
-                            {b.doctorName ? `Dr. ${b.doctorName.replace(/^Dr\.\s*/i, "")}` : (b.facilityName || b.serviceTitle || "Healthcare Booking")}
-                          </p>
-                          <span className="text-[11px] text-slate-500">
-                            {b.doctorSpecialty || b.department || b.packageTitle || "General Care"}
-                          </span>
-                        </td>
-                        <td className="p-4 font-black text-navy">₹{b.amount}</td>
-                        <td className="p-4">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
-                              b.paymentStatus === "PAID"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {b.paymentStatus === "PAID" ? "PAID" : "FAILED LEAD"}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700">
-                            {b.diagnosticResponses?.length || 0} Questions Answered
-                          </span>
-                        </td>
-                        <td className="p-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedBooking(b)}
-                            className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-navy hover:bg-teal-600 hover:text-white transition"
-                          >
-                            Inspect Lead
-                          </button>
+                    {filteredBookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-slate-400">
+                          No consultations match the selected filters.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredBookings.map((b) => {
+                        const isOnline = (b.consultationMode || b.mode || "").toLowerCase().includes("online");
+                        return (
+                          <tr key={b.id} className="hover:bg-slate-50/70 transition">
+                            <td className="p-4 font-mono font-bold text-teal-700">{b.id}</td>
+                            <td className="p-4">
+                              <p className="font-bold text-navy">{b.patientName}</p>
+                              <span className="font-mono text-[10px] text-slate-500">{b.patientHealthId || b.patientId}</span>
+                            </td>
+                            <td className="p-4 font-mono font-medium text-slate-700">{b.patientPhone || b.phone}</td>
+                            <td className="p-4">
+                              <p className="font-bold text-navy">
+                                {b.doctorName ? `Dr. ${b.doctorName.replace(/^Dr\.\s*/i, "")}` : (b.facilityName || b.serviceTitle || "Healthcare Booking")}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[11px] text-slate-500">
+                                  {b.doctorSpecialty || b.department || b.packageTitle || "General Care"}
+                                </span>
+                                {b.disease && (
+                                  <span className="rounded-md bg-amber-50 text-amber-800 px-1.5 py-0.2 text-[9px] font-bold">
+                                    {b.disease}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Mode badge */}
+                            <td className="p-4">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                                  isOnline
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {isOnline ? (
+                                  <>
+                                    <Video className="h-3 w-3" /> Online Video
+                                  </>
+                                ) : (
+                                  <>
+                                    <Building2 className="h-3 w-3" /> Offline Clinic
+                                  </>
+                                )}
+                              </span>
+                            </td>
+
+                            <td className="p-4 font-black text-navy">₹{b.amount}</td>
+
+                            <td className="p-4">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${
+                                  b.paymentStatus === "PAID"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
+                                {b.paymentStatus === "PAID" ? "PAID" : "FAILED LEAD"}
+                              </span>
+                            </td>
+
+                            {/* Consultation Status & Direct "Mark as Consulted" */}
+                            <td className="p-4">
+                              {b.isConsulted ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Consulted
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    healthStore.updateBookingStatus(b.id, "Consulted");
+                                    refreshAll();
+                                  }}
+                                  className="rounded-full bg-teal-600 px-3 py-1 text-[10px] font-bold text-white hover:bg-teal-700 transition shadow-xs"
+                                >
+                                  Mark Consulted ✓
+                                </button>
+                              )}
+                            </td>
+
+                            <td className="p-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedBooking(b)}
+                                className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-navy hover:bg-teal-600 hover:text-white transition"
+                              >
+                                Inspect Lead
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -626,6 +866,291 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* PATIENT EXTENDED MANAGEMENT: GOV SCHEMES, INSURANCE, AND CONSULTATIONS */}
+            {patient && (
+              <div className="space-y-6 pt-4">
+                {/* Management Action Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 border border-slate-200">
+                  <div>
+                    <h3 className="font-display text-sm font-bold text-navy">
+                      Clinical & Insurance Dossier: {patient.name} ({patient.healthId})
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Link active empanelled government schemes, private/central health insurances, and digital consultation records.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const firstScheme = govSchemes[0] || null;
+                        setLinkSchemeModal({
+                          open: true,
+                          schemeId: firstScheme?.id || "",
+                          cardNumber: `PMJAY-${Math.floor(10000000 + Math.random() * 90000000)}`,
+                          balance: firstScheme?.coverageAmount || "₹5,00,000 / year",
+                          validTill: "2027-12-31",
+                          treatmentsInput: firstScheme?.treatmentsCovered?.join(", ") || "",
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Link Government Scheme
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAddInsuranceModal({
+                          open: true,
+                          provider: "Star Health & Allied Insurance",
+                          policyNumber: `POL-${Math.floor(100000 + Math.random() * 900000)}`,
+                          sumInsured: "₹10,00,000",
+                          type: "Family Floater Cashless Mediclaim",
+                          tpa: "Medi Assist TPA Desk (24x7)",
+                        })
+                      }
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Insurance Policy
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAddConsultationModal({
+                          open: true,
+                          doctorName: "Dr. Arvind Mehta",
+                          specialty: "Cardiology",
+                          disease: "Hypertension / Chest Heaviness",
+                          mode: "In-Clinic OPD",
+                          date: new Date().toISOString().split("T")[0],
+                          medicinesInput: "Tab Telmisartan 40mg (1 OD Morning), Tab Rosuvastatin 10mg (1 HS)",
+                          advice: "Maintain low sodium diet, avoid strenuous exertion, repeat ECG in 14 days.",
+                        })
+                      }
+                      className="inline-flex items-center gap-1 rounded-full bg-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-teal-700"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Record Consultation & Rx
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grid 1: Active Linked Government Schemes on Patient */}
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                      <h4 className="font-display text-sm font-bold text-navy">
+                        Linked Government Healthcare Schemes ({patient.governmentSchemes?.length || 0})
+                      </h4>
+                    </div>
+                    <span className="text-[11px] text-slate-500">
+                      Configured via Government Schemes Management
+                    </span>
+                  </div>
+
+                  {(!patient.governmentSchemes || patient.governmentSchemes.length === 0) ? (
+                    <p className="text-xs text-slate-400 p-4 text-center">No government schemes linked to this patient yet.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {patient.governmentSchemes.map((gs) => (
+                        <div key={gs.id} className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-2 text-xs">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="rounded-sm bg-emerald-600 text-white font-mono text-[9px] px-1.5 py-0.2 font-bold uppercase">
+                                {gs.status || "Active Card"}
+                              </span>
+                              <h5 className="font-display text-sm font-bold text-navy mt-1">{gs.schemeName}</h5>
+                              <p className="font-mono text-teal-800 text-[11px] font-bold">Card: {gs.cardNumber}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Remove scheme "${gs.schemeName}" from patient?`)) {
+                                  healthStore.removeSchemeFromPatient(patient.id, gs.id);
+                                  refreshAll();
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 text-xs font-bold p-1"
+                              title="Remove Scheme"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-emerald-100 pt-2">
+                            <span>Balance Coverage:</span>
+                            <span className="font-black text-emerald-900">{gs.balanceRemaining || gs.coverageAmount}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Valid Till:</span>
+                            <span className="font-mono">{gs.validTill}</span>
+                          </div>
+
+                          {gs.treatmentsCovered && gs.treatmentsCovered.length > 0 && (
+                            <div className="pt-1">
+                              <span className="text-[10px] text-slate-400 font-bold block mb-1">Eligible Treatments:</span>
+                              <div className="flex flex-wrap gap-1">
+                                {gs.treatmentsCovered.slice(0, 3).map((t, idx) => (
+                                  <span key={idx} className="rounded-md bg-white border border-emerald-200 px-1.5 py-0.2 text-[9px] text-emerald-900 font-medium">
+                                    {t}
+                                  </span>
+                                ))}
+                                {gs.treatmentsCovered.length > 3 && (
+                                  <span className="text-[9px] text-emerald-800 font-bold">+{gs.treatmentsCovered.length - 3} more</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Grid 2: Active Insurance Policies on Patient */}
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-display text-sm font-bold text-navy">
+                        Private & Central Health Insurance Policies ({patient.insurancePolicies?.length || 0})
+                      </h4>
+                    </div>
+                    <span className="text-[11px] text-slate-500">
+                      TPA Cashless Empanelled
+                    </span>
+                  </div>
+
+                  {(!patient.insurancePolicies || patient.insurancePolicies.length === 0) ? (
+                    <p className="text-xs text-slate-400 p-4 text-center">No insurance policies recorded.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {patient.insurancePolicies.map((pol) => (
+                        <div key={pol.id} className="rounded-2xl border border-blue-200 bg-blue-50/40 p-4 space-y-2 text-xs">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="rounded-sm bg-blue-600 text-white font-mono text-[9px] px-1.5 py-0.2 font-bold uppercase">
+                                {pol.cashlessStatus || "Cashless Active"}
+                              </span>
+                              <h5 className="font-display text-sm font-bold text-navy mt-1">{pol.provider}</h5>
+                              <p className="font-mono text-blue-900 text-[11px] font-bold">Policy: {pol.policyNumber}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Remove insurance "${pol.provider}"?`)) {
+                                  healthStore.removeInsuranceFromPatient(patient.id, pol.id);
+                                  refreshAll();
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 text-xs font-bold p-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-blue-100 pt-2">
+                            <span>Sum Insured:</span>
+                            <span className="font-black text-blue-900">{pol.sumInsured}</span>
+                          </div>
+
+                          <div className="text-[11px] text-slate-500">
+                            <span>TPA Desk: {pol.tpaDesk}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Grid 3: Doctor Consultation & Prescription History */}
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Stethoscope className="h-4 w-4 text-teal-600" />
+                      <h4 className="font-display text-sm font-bold text-navy">
+                        Recorded Doctor Consultations & Digital Prescriptions ({patient.consultationHistory?.length || 0})
+                      </h4>
+                    </div>
+                    <span className="text-[11px] text-slate-500">
+                      Syncs to Patient's Digital Health Card
+                    </span>
+                  </div>
+
+                  {(!patient.consultationHistory || patient.consultationHistory.length === 0) ? (
+                    <p className="text-xs text-slate-400 p-4 text-center">No consultations recorded.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {patient.consultationHistory.map((c) => (
+                        <div key={c.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-navy text-sm">{c.doctorName}</span>
+                                <span className="rounded-md bg-teal-100 text-teal-800 px-2 py-0.2 text-[10px] font-bold">
+                                  {c.specialty}
+                                </span>
+                              </div>
+                              <p className="text-slate-600 mt-0.5">
+                                Diagnosis / Condition: <strong className="text-navy">{c.diagnosis || c.disease}</strong>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                                {c.mode || "In-Clinic OPD"}
+                              </span>
+                              <p className="text-[10px] text-slate-500 font-mono mt-0.5">{c.date}</p>
+                            </div>
+                          </div>
+
+                          {/* Prescribed Medicines */}
+                          {c.prescriptions && c.prescriptions.length > 0 && (
+                            <div className="pt-1 space-y-1">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                                Digital Prescription Medications (Rx)
+                              </span>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-left text-[11px]">
+                                  <thead className="text-slate-400 font-bold text-[10px]">
+                                    <tr>
+                                      <th>Medicine</th>
+                                      <th>Dosage</th>
+                                      <th>Frequency</th>
+                                      <th>Instructions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-200/50">
+                                    {c.prescriptions.map((p, pIdx) => (
+                                      <tr key={pIdx}>
+                                        <td className="py-1 font-bold text-navy">{p.medicine}</td>
+                                        <td className="py-1 text-slate-600">{p.dosage}</td>
+                                        <td className="py-1 text-slate-700">{p.frequency}</td>
+                                        <td className="py-1 text-slate-500">{p.instructions}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {c.doctorAdvice && (
+                            <p className="text-[11px] text-teal-900 bg-teal-50/70 p-2 rounded-lg border border-teal-100">
+                              <strong>Doctor Note:</strong> {c.doctorAdvice}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -970,6 +1495,24 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* TAB 7: GOVT HEALTHCARE SCHEMES MANAGEMENT */}
+        {activeTab === "govschemes" && <AdminGovSchemesSection />}
+
+        {/* TAB 8: HOSPITALS & PRIORITY RANKING */}
+        {activeTab === "providers" && <AdminProvidersRankingSection />}
+
+        {/* TAB 9: AMBULANCES & 24x7 DISPATCH DESK */}
+        {activeTab === "ambulances" && <AdminAmbulancesSection />}
+
+        {/* TAB 10: COMMUNITY HEALTH CAMPS OUTREACH */}
+        {activeTab === "camps" && <AdminCampsSection />}
+
+        {/* TAB 11: DELIVERABLE SERVICES (LABS & PHARMACIES) */}
+        {activeTab === "deliverables" && <AdminDeliverablesSection />}
+
+        {/* TAB 12: MULTI-ROLE PARTNER REGISTRATIONS DESK */}
+        {activeTab === "registrations" && <AdminRegistrationsSection />}
       </main>
 
       {/* INSPECT BOOKING / LEAD DRAWER */}
@@ -1073,6 +1616,53 @@ export default function AdminPage() {
               )}
             </div>
 
+            {/* Consultation Mode & Clinical Diagnosis */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
+              <span className="font-bold uppercase text-[10px] text-slate-500">Clinical Appointment Details</span>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Consultation Mode:</span>
+                <span className="font-bold text-navy">
+                  {(selectedBooking.consultationMode || selectedBooking.mode || "").toLowerCase().includes("online")
+                    ? "Online Video Call"
+                    : "Offline In-Clinic Visit"}
+                </span>
+              </div>
+              {selectedBooking.disease && (
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Chief Complaint / Disease:</span>
+                  <span className="font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md">
+                    {selectedBooking.disease}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                <span className="text-slate-600">Clinical Status:</span>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                    selectedBooking.isConsulted
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {selectedBooking.isConsulted ? "Consulted ✓" : "Pending Consultation"}
+                </span>
+              </div>
+
+              {!selectedBooking.isConsulted && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    healthStore.updateBookingStatus(selectedBooking.id, "Consulted");
+                    setSelectedBooking({ ...selectedBooking, isConsulted: true, status: "Consulted" });
+                    refreshAll();
+                  }}
+                  className="mt-2 w-full rounded-xl bg-teal-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-teal-700 transition"
+                >
+                  Mark as Consulted ✓
+                </button>
+              )}
+            </div>
+
             {/* Payment Details */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
               <span className="font-bold uppercase text-[10px] text-slate-500">Transaction Details</span>
@@ -1115,6 +1705,406 @@ export default function AdminPage() {
             </div>
 
             <G1DigitalHealthCard patient={patient} showActions={true} />
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 1: LINK GOVERNMENT SCHEME TO PATIENT */}
+      {linkSchemeModal.open && patient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/70 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="font-mono text-xs font-bold text-emerald-700">Patient: {patient.name}</span>
+                <h3 className="font-display text-lg font-bold text-navy">
+                  Link Government Healthcare Scheme
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLinkSchemeModal({ ...linkSchemeModal, open: false })}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const matchedScheme = govSchemes.find((s) => s.id === linkSchemeModal.schemeId) || govSchemes[0];
+                const newLinkedScheme = {
+                  id: `pat-scheme-${Date.now()}`,
+                  schemeId: matchedScheme?.id || "custom-scheme",
+                  schemeName: matchedScheme?.name || "Ayushman Bharat PM-JAY",
+                  cardNumber: linkSchemeModal.cardNumber.trim(),
+                  balanceRemaining: linkSchemeModal.balance.trim(),
+                  validTill: linkSchemeModal.validTill.trim(),
+                  status: "Active Verified",
+                  treatmentsCovered: linkSchemeModal.treatmentsInput
+                    .split(",")
+                    .map((t) => t.trim())
+                    .filter(Boolean),
+                };
+                healthStore.addSchemeToPatient(patient.id, newLinkedScheme);
+                setLinkSchemeModal({ ...linkSchemeModal, open: false });
+                refreshAll();
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="font-bold text-slate-700">Select Empanelled Scheme</label>
+                <select
+                  value={linkSchemeModal.schemeId}
+                  onChange={(e) => {
+                    const sid = e.target.value;
+                    const matched = govSchemes.find((s) => s.id === sid);
+                    setLinkSchemeModal({
+                      ...linkSchemeModal,
+                      schemeId: sid,
+                      balance: matched?.coverageAmount || "₹5,00,000 / year",
+                      treatmentsInput: matched?.treatmentsCovered?.join(", ") || "",
+                    });
+                  }}
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-navy focus:border-emerald-600 focus:outline-hidden"
+                >
+                  {govSchemes.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.coverageAmount})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700">Patient Beneficiary Card Number</label>
+                <input
+                  type="text"
+                  required
+                  value={linkSchemeModal.cardNumber}
+                  onChange={(e) => setLinkSchemeModal({ ...linkSchemeModal, cardNumber: e.target.value })}
+                  placeholder="e.g. PMJAY-12345678"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-mono font-bold text-navy focus:border-emerald-600 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700">Annual Coverage Amount</label>
+                  <input
+                    type="text"
+                    value={linkSchemeModal.balance}
+                    onChange={(e) => setLinkSchemeModal({ ...linkSchemeModal, balance: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-emerald-800 focus:border-emerald-600 focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700">Validity Expiry Date</label>
+                  <input
+                    type="text"
+                    value={linkSchemeModal.validTill}
+                    onChange={(e) => setLinkSchemeModal({ ...linkSchemeModal, validTill: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-mono text-navy focus:border-emerald-600 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700">Covered Treatments (Auto-populated from Scheme)</label>
+                <textarea
+                  rows={2}
+                  value={linkSchemeModal.treatmentsInput}
+                  onChange={(e) => setLinkSchemeModal({ ...linkSchemeModal, treatmentsInput: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy focus:border-emerald-600 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setLinkSchemeModal({ ...linkSchemeModal, open: false })}
+                  className="rounded-full px-5 py-2 font-bold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-full bg-emerald-600 px-6 py-2 font-bold text-white shadow hover:bg-emerald-700"
+                >
+                  Link to Patient Card ✓
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: ADD INSURANCE POLICY TO PATIENT */}
+      {addInsuranceModal.open && patient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/70 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="font-mono text-xs font-bold text-blue-700">Patient: {patient.name}</span>
+                <h3 className="font-display text-lg font-bold text-navy">
+                  Add Health Insurance Policy
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddInsuranceModal({ ...addInsuranceModal, open: false })}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const newPolicy = {
+                  id: `ins-${Date.now()}`,
+                  provider: addInsuranceModal.provider.trim(),
+                  policyNumber: addInsuranceModal.policyNumber.trim(),
+                  sumInsured: addInsuranceModal.sumInsured.trim(),
+                  policyType: addInsuranceModal.type.trim(),
+                  tpaDesk: addInsuranceModal.tpa.trim(),
+                  cashlessStatus: "Cashless Empanelled",
+                };
+                healthStore.addInsuranceToPatient(patient.id, newPolicy);
+                setAddInsuranceModal({ ...addInsuranceModal, open: false });
+                refreshAll();
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="font-bold text-slate-700">Insurance Company / Provider</label>
+                <input
+                  type="text"
+                  required
+                  value={addInsuranceModal.provider}
+                  onChange={(e) => setAddInsuranceModal({ ...addInsuranceModal, provider: e.target.value })}
+                  placeholder="e.g. Star Health & Allied Insurance"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-navy"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700">Policy Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={addInsuranceModal.policyNumber}
+                    onChange={(e) => setAddInsuranceModal({ ...addInsuranceModal, policyNumber: e.target.value })}
+                    placeholder="POL-88219"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-mono font-bold text-navy"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700">Sum Insured (₹)</label>
+                  <input
+                    type="text"
+                    value={addInsuranceModal.sumInsured}
+                    onChange={(e) => setAddInsuranceModal({ ...addInsuranceModal, sumInsured: e.target.value })}
+                    placeholder="₹10,00,000"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-blue-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700">Policy Plan Type</label>
+                  <input
+                    type="text"
+                    value={addInsuranceModal.type}
+                    onChange={(e) => setAddInsuranceModal({ ...addInsuranceModal, type: e.target.value })}
+                    placeholder="Family Floater Mediclaim"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700">TPA Desk / Helpdesk</label>
+                  <input
+                    type="text"
+                    value={addInsuranceModal.tpa}
+                    onChange={(e) => setAddInsuranceModal({ ...addInsuranceModal, tpa: e.target.value })}
+                    placeholder="Medi Assist TPA"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAddInsuranceModal({ ...addInsuranceModal, open: false })}
+                  className="rounded-full px-5 py-2 font-bold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-full bg-blue-600 px-6 py-2 font-bold text-white shadow hover:bg-blue-700"
+                >
+                  Save Insurance Policy ✓
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: RECORD DOCTOR CONSULTATION & RX */}
+      {addConsultationModal.open && patient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/70 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="font-mono text-xs font-bold text-teal-700">Patient: {patient.name}</span>
+                <h3 className="font-display text-lg font-bold text-navy">
+                  Record Doctor Consultation & Rx
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddConsultationModal({ ...addConsultationModal, open: false })}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                // Parse prescribed medicines
+                const parsedMeds = addConsultationModal.medicinesInput
+                  .split(",")
+                  .map((m) => m.trim())
+                  .filter(Boolean)
+                  .map((medStr) => ({
+                    medicine: medStr,
+                    dosage: "Standard dose",
+                    frequency: "As directed",
+                    instructions: "Post meals",
+                  }));
+
+                const newConsultation = {
+                  id: `cons-${Date.now()}`,
+                  doctorName: addConsultationModal.doctorName.trim(),
+                  specialty: addConsultationModal.specialty.trim(),
+                  diagnosis: addConsultationModal.disease.trim(),
+                  disease: addConsultationModal.disease.trim(),
+                  date: addConsultationModal.date,
+                  mode: addConsultationModal.mode,
+                  doctorAdvice: addConsultationModal.advice.trim(),
+                  prescriptions: parsedMeds,
+                };
+
+                healthStore.addConsultationToPatient(patient.id, newConsultation);
+                setAddConsultationModal({ ...addConsultationModal, open: false });
+                refreshAll();
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700">Doctor Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={addConsultationModal.doctorName}
+                    onChange={(e) => setAddConsultationModal({ ...addConsultationModal, doctorName: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-navy"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700">Doctor Specialty</label>
+                  <input
+                    type="text"
+                    required
+                    value={addConsultationModal.specialty}
+                    onChange={(e) => setAddConsultationModal({ ...addConsultationModal, specialty: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-semibold text-navy"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700">Disease Diagnosis / Chief Complaint</label>
+                <input
+                  type="text"
+                  required
+                  value={addConsultationModal.disease}
+                  onChange={(e) => setAddConsultationModal({ ...addConsultationModal, disease: e.target.value })}
+                  placeholder="e.g. Chest Pain, Type 2 Diabetes, Hypertension"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-bold text-teal-800"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700">Consultation Mode</label>
+                  <select
+                    value={addConsultationModal.mode}
+                    onChange={(e) => setAddConsultationModal({ ...addConsultationModal, mode: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy font-semibold"
+                  >
+                    <option value="In-Clinic OPD">In-Clinic OPD Visit</option>
+                    <option value="Online Video Call">Online Video Call</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700">Date of Visit</label>
+                  <input
+                    type="date"
+                    value={addConsultationModal.date}
+                    onChange={(e) => setAddConsultationModal({ ...addConsultationModal, date: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-navy"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700">Prescription Medicines (Comma Separated)</label>
+                <textarea
+                  rows={2}
+                  value={addConsultationModal.medicinesInput}
+                  onChange={(e) => setAddConsultationModal({ ...addConsultationModal, medicinesInput: e.target.value })}
+                  placeholder="e.g. Tab Telmisartan 40mg (1 OD), Tab Rosuvastatin 10mg (1 HS)"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700">Doctor Advice / Next Review</label>
+                <input
+                  type="text"
+                  value={addConsultationModal.advice}
+                  onChange={(e) => setAddConsultationModal({ ...addConsultationModal, advice: e.target.value })}
+                  placeholder="Follow low salt diet, review in 14 days"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-navy"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAddConsultationModal({ ...addConsultationModal, open: false })}
+                  className="rounded-full px-5 py-2 font-bold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-full bg-teal-600 px-6 py-2 font-bold text-white shadow hover:bg-teal-700"
+                >
+                  Record Consultation & Rx ✓
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -21,6 +21,7 @@ import {
   MapPin,
   Star,
   Check,
+  Video,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import QRCode from "qrcode";
@@ -45,6 +46,8 @@ export default function DoctorBookingModal({
   onClose,
   onSuccess,
   initialSlot,
+  initialDisease = "",
+  initialMode = "in_clinic",
 }) {
   const { user } = useAuth();
   const [patient, setPatient] = useState({
@@ -54,7 +57,8 @@ export default function DoctorBookingModal({
     bloodGroup: "O+",
     healthId: "G1-849201",
   });
-  const consultationMode = "in_clinic";
+  const [consultationMode, setConsultationMode] = useState(initialMode || "in_clinic"); // 'in_clinic' | 'online_video'
+  const [disease, setDisease] = useState(initialDisease || "");
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -84,11 +88,17 @@ export default function DoctorBookingModal({
       if (initialSlot) {
         setSelectedSlot(initialSlot);
       }
+      if (initialDisease) {
+        setDisease(initialDisease);
+      }
+      if (initialMode) {
+        setConsultationMode(initialMode);
+      }
       setConfirmedBooking(null);
       setSymptoms("");
       setPrescriptionUrl("");
     }
-  }, [isOpen, user, initialSlot]);
+  }, [isOpen, user, initialSlot, initialDisease, initialMode]);
 
   useEffect(() => {
     if (confirmedBooking) {
@@ -144,7 +154,9 @@ export default function DoctorBookingModal({
       doctorSpecialty: doctor.specialty,
       doctorImage: doctor.image,
       doctorAddress: doctor.address || doctor.city,
-      consultationMode,
+      consultationMode: consultationMode === "online_video" ? "Online Video Call" : "Offline In-Clinic Visit",
+      mode: consultationMode,
+      disease: disease || symptoms || "General Consultation",
       consultationDate: selectedDate,
       timeSlot: selectedSlot,
       patientName: patient.name,
@@ -152,11 +164,13 @@ export default function DoctorBookingModal({
       patientAge: patient.age,
       patientBloodGroup: patient.bloodGroup,
       patientHealthId: patient.healthId,
-      symptoms: symptoms || "Routine checkup and specialist consultation",
+      symptoms: symptoms || disease || "Routine checkup and specialist consultation",
       prescriptionDocument: prescriptionUrl || null,
       amount: consultationFee,
       paymentMethod: paymentChoice === "online" ? "Razorpay UPI / Cards" : "Pay at Clinic Counter",
       paymentStatus: paymentChoice === "online" ? "PAID" : "CONFIRMED_PAY_LATER",
+      status: "Confirmed",
+      isConsulted: false,
     };
 
     if (paymentChoice === "online") {
@@ -256,22 +270,68 @@ export default function DoctorBookingModal({
               </div>
             </div>
 
-            {/* Consultation Mode */}
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-brand text-white shadow-xs">
-                  <Building2 className="h-5 w-5" />
-                </span>
-                <div>
-                  <span className="font-display text-xs font-extrabold text-navy block">
-                    In-Clinic OPD Consultation
+            {/* Consultation Mode Selector: Online vs Offline */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                Select Consultation Mode (कंसल्टेशन का प्रकार)
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setConsultationMode("in_clinic")}
+                  className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
+                    consultationMode === "in_clinic"
+                      ? "border-teal-600 bg-teal-50/90 shadow-xs ring-1 ring-teal-500"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                      consultationMode === "in_clinic" ? "bg-teal-600 text-white shadow-xs" : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    <Building2 className="h-5 w-5" />
                   </span>
-                  <span className="text-[11px] text-slate-500">
-                    Physical hospital visit with Dr. {doctor?.name?.replace(/^Dr\.\s*/i, "")}
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-display text-xs font-extrabold text-navy">Offline In-Clinic</span>
+                      {consultationMode === "in_clinic" && (
+                        <span className="h-2 w-2 rounded-full bg-teal-600" />
+                      )}
+                    </div>
+                    <span className="text-[10.5px] text-slate-500 block">Hospital / OPD Walk-in</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setConsultationMode("online_video")}
+                  className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
+                    consultationMode === "online_video"
+                      ? "border-purple-600 bg-purple-50/90 shadow-xs ring-1 ring-purple-500"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                      consultationMode === "online_video"
+                        ? "bg-purple-600 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    <Video className="h-5 w-5" />
                   </span>
-                </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-display text-xs font-extrabold text-navy">Online Video Call</span>
+                      {consultationMode === "online_video" && (
+                        <span className="h-2 w-2 rounded-full bg-purple-600" />
+                      )}
+                    </div>
+                    <span className="text-[10.5px] text-slate-500 block">Teleconsult & Digital Rx</span>
+                  </div>
+                </button>
               </div>
-              <span className="font-display text-sm font-black text-navy">₹{consultationFee}</span>
             </div>
 
             {/* Date & Time Slot */}
@@ -361,17 +421,43 @@ export default function DoctorBookingModal({
               </div>
             </div>
 
-            {/* Symptoms & Optional Prescription */}
+            {/* Symptoms, Disease & Optional Prescription */}
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Reason for Visit / Primary Symptoms
+                  Primary Disease / Medical Problem (किस बीमारी या समस्या के लिए दिखा रहे हैं?)
+                </label>
+                <input
+                  type="text"
+                  value={disease}
+                  onChange={(e) => setDisease(e.target.value)}
+                  placeholder="e.g. Chest Discomfort, Diabetes, Severe Knee Pain, Migraine, Dengue Fever..."
+                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-navy focus:border-teal-brand focus:outline-hidden"
+                  required
+                />
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {["Chest Pain / BP", "Diabetes / Sugar", "Knee / Joint Arthritis", "Migraine / Headache", "Fever / Dengue", "Skin Allergy"].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setDisease(tag)}
+                      className="rounded-full bg-slate-100 hover:bg-teal-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 hover:text-teal-900 transition cursor-pointer"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Specific Symptoms / Duration Notes (लक्षण व परेशानी का विवरण)
                 </label>
                 <textarea
                   rows={2}
                   value={symptoms}
                   onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g. Experiencing persistent headaches and throat pain for 3 days..."
+                  placeholder="e.g. Experiencing pain since 3 days, especially during morning or exertion..."
                   className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-medium text-navy focus:border-teal-brand focus:outline-hidden"
                 />
               </div>
@@ -489,15 +575,21 @@ export default function DoctorBookingModal({
                 </div>
                 <div>
                   <span className="text-slate-500 text-[11px]">Consultation Mode</span>
-                  <p className="font-bold text-navy capitalize">{confirmedBooking.consultationMode.replace("_", " ")}</p>
+                  <p className="font-bold text-navy capitalize">{confirmedBooking.consultationMode}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-[11px]">Condition / Disease</span>
+                  <p className="font-bold text-teal-800 truncate">{confirmedBooking.disease || "General Consultation"}</p>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[11px]">Patient Name</span>
                   <p className="font-bold text-navy">{confirmedBooking.patientName} ({confirmedBooking.patientHealthId})</p>
                 </div>
                 <div>
-                  <span className="text-slate-500 text-[11px]">Clinic Address</span>
-                  <p className="font-bold text-navy truncate">{confirmedBooking.doctorAddress}</p>
+                  <span className="text-slate-500 text-[11px]">Clinic / Meeting Mode</span>
+                  <p className="font-bold text-navy truncate">
+                    {confirmedBooking.mode === "online_video" ? "Secure Video Link (WhatsApp/SMS)" : confirmedBooking.doctorAddress}
+                  </p>
                 </div>
               </div>
 

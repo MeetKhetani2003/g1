@@ -1,0 +1,27 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 100" role="img" aria-label="G1 Healthcare Aggregator logo">
+  <defs>
+    <linearGradient id="g1teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#02C39A"/>
+      <stop offset="55%" stop-color="#00A896"/>
+      <stop offset="100%" stop-color="#087F79"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#02C39A" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Icon: circular swirl G -->
+  <g transform="translate(6,10) scale(0.8)" filter="url(#glow)">
+    <path d="M50 4 C78 4 100 26 100 54 C100 82 78 100 50 100 C30 100 12 88 6 70 C12 84 28 92 46 92 C70 92 90 74 90 52 C90 30 70 12 46 12 C32 12 20 18 12 28 C18 12 32 4 50 4 Z" fill="url(#g1teal)"/>
+    <path d="M50 14 C72 14 90 30 90 54 C90 66 84 76 75 82 C82 74 86 64 86 54 C86 32 68 20 48 20 C36 20 26 25 20 32 C26 20 36 14 50 14 Z" fill="#02C39A" opacity="0.85"/>
+    <path d="M4 62 C24 78 48 80 72 68 C84 62 94 54 100 46 C96 60 84 72 66 78 C44 86 20 82 4 62 Z" fill="url(#g1teal)"/>
+    <g transform="translate(37,36)">
+      <rect x="6" y="0" width="16" height="36" rx="3" fill="#FFFFFF"/>
+      <rect x="0" y="10" width="28" height="16" rx="3" fill="#FFFFFF"/>
+    </g>
+  </g>
+  <!-- Wordmark in crisp White & Emerald for Dark Navy Backgrounds -->
+  <g font-family="Manrope, system-ui, -apple-system, sans-serif">
+    <text x="100" y="58" font-size="38" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">G1 Healthcare</text>
+    <text x="102" y="82" font-size="13" font-weight="800" fill="#02C39A" letter-spacing="3.5">AGGREGATOR</text>
+  </g>
+</svg>

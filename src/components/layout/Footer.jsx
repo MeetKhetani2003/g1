@@ -40,12 +40,12 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <Link to="/" className="inline-flex items-center gap-3" aria-label="G1 Healthcare Aggregator home">
-              <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white p-1">
+            <Link to="/" className="group inline-flex items-center gap-3 transition" aria-label="G1 Healthcare Aggregator home">
+              <span className="flex h-12 w-12 items-center justify-center shrink-0 overflow-hidden rounded-2xl bg-white/5 p-1 ring-1 ring-teal-brand/35 shadow-md transition group-hover:ring-teal-brand group-hover:scale-105">
                 <img src="/brand/g1-icon.svg" alt="" className="h-full w-full object-contain" />
               </span>
               <span className="leading-tight">
-                <span className="block font-display text-xl font-extrabold text-white">G1 Healthcare</span>
+                <span className="block font-display text-xl font-extrabold text-white group-hover:text-teal-brand transition">G1 Healthcare</span>
                 <span className="block text-[11px] font-bold uppercase tracking-[0.25em] text-emerald-brand">Aggregator</span>
               </span>
             </Link>

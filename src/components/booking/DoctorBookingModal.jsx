@@ -1,4 +1,4 @@
-// src/components/booking/DoctorBookingModal.jsx
+﻿// src/components/booking/DoctorBookingModal.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,7 +57,7 @@ export default function DoctorBookingModal({
     bloodGroup: "O+",
     healthId: "G1-849201",
   });
-  const [consultationMode, setConsultationMode] = useState(initialMode || "in_clinic"); // 'in_clinic' | 'online_video'
+  const [consultationMode, setConsultationMode] = useState(initialMode || "in_clinic");
   const [disease, setDisease] = useState(initialDisease || "");
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
@@ -68,7 +68,7 @@ export default function DoctorBookingModal({
   const [symptoms, setSymptoms] = useState("");
   const [prescriptionUrl, setPrescriptionUrl] = useState("");
   const [uploadingPrescription, setUploadingPrescription] = useState(false);
-  const [paymentChoice, setPaymentChoice] = useState("online"); // 'online' | 'pay_at_clinic'
+  const [paymentChoice, setPaymentChoice] = useState("online");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
@@ -177,7 +177,7 @@ export default function DoctorBookingModal({
       try {
         const razorpayResult = await processRazorpayPayment({
           amount: consultationFee,
-          packageName: `Dr. Consultation — ${doctor.name}`,
+          packageName: `Dr. Consultation · ${doctor.name}`,
           serviceTitle: doctor.specialty || "Specialist Doctor Consultation",
           patientDetails: {
             name: patient.name,
@@ -192,7 +192,6 @@ export default function DoctorBookingModal({
         bookingPayload.razorpayPaymentId = razorpayResult.razorpay_payment_id;
       } catch (err) {
         console.warn("Razorpay demo fallback:", err);
-        // Fallback demo confirmation
         bookingPayload.paymentStatus = "PAID (Demo Verified)";
       }
     }
@@ -209,11 +208,11 @@ export default function DoctorBookingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-navy/70 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden my-6">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80">
-          <div className="flex items-center gap-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-navy/80 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl max-h-[92vh] sm:max-h-[88vh] rounded-3xl bg-white shadow-2xl border border-slate-100 flex flex-col my-auto overflow-hidden">
+        {/* Header - Fixed at Top */}
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 bg-slate-50/90 shrink-0">
+          <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-dark">
               <Stethoscope className="h-5 w-5" />
             </span>
@@ -229,305 +228,314 @@ export default function DoctorBookingModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-navy transition"
+            aria-label="Close booking modal"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-navy transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Content */}
+        {/* Content - Scrollable Form Body */}
         {!confirmedBooking ? (
-          <form onSubmit={handleBookingSubmit} className="p-6 space-y-5">
-            {/* Doctor Info Card */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-teal-100 bg-gradient-to-r from-teal-50/60 to-emerald-50/40 p-4">
-              <div className="flex items-center gap-3.5">
-                <img
-                  src={doctor.image}
-                  alt={doctor.name}
-                  className="h-14 w-14 rounded-2xl object-cover ring-2 ring-teal-500/30 shrink-0"
-                />
-                <div>
-                  <h4 className="font-display text-[15px] font-extrabold text-navy">{doctor.name}</h4>
-                  <p className="text-xs font-semibold text-teal-800">{doctor.specialty}</p>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-slate-600">
-                    <span className="flex items-center gap-0.5 font-bold text-amber-600">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {doctor.rating || "4.9"}
-                    </span>
-                    <span>·</span>
-                    <span className="flex items-center gap-0.5">
-                      <MapPin className="h-3 w-3 text-slate-400" /> {doctor.city}
-                    </span>
+          <form onSubmit={handleBookingSubmit} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 sm:space-y-5 overscroll-contain">
+              {/* Doctor Info Card */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-teal-100 bg-gradient-to-r from-teal-50/60 to-emerald-50/40 p-4">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src={doctor.image}
+                    alt={doctor.name}
+                    className="h-14 w-14 rounded-2xl object-cover ring-2 ring-teal-500/30 shrink-0"
+                  />
+                  <div>
+                    <h4 className="font-display text-[15px] font-extrabold text-navy">{doctor.name}</h4>
+                    <p className="text-xs font-semibold text-teal-800">{doctor.specialty}</p>
+                    <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-slate-600">
+                      <span className="flex items-center gap-0.5 font-bold text-amber-600">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {doctor.rating || "4.9"}
+                      </span>
+                      <span>·</span>
+                      <span className="flex items-center gap-0.5">
+                        <MapPin className="h-3 w-3 text-slate-400" /> {doctor.city}
+                      </span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="sm:text-right border-t sm:border-t-0 border-teal-100/60 pt-2 sm:pt-0">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Consultation Fee
+                  </span>
+                  <span className="font-display text-xl font-black text-navy">₹{consultationFee}</span>
+                  <span className="block text-[10px] font-semibold text-emerald-700">✓ Free G1 Follow-up</span>
                 </div>
               </div>
 
-              <div className="sm:text-right border-t sm:border-t-0 border-teal-100/60 pt-2 sm:pt-0">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Consultation Fee
-                </span>
-                <span className="font-display text-xl font-black text-navy">₹{consultationFee}</span>
-                <span className="block text-[10px] font-semibold text-emerald-700">✓ Free G1 Follow-up</span>
-              </div>
-            </div>
-
-            {/* Consultation Mode Selector: Online vs Offline */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                Select Consultation Mode (कंसल्टेशन का प्रकार)
-              </label>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setConsultationMode("in_clinic")}
-                  className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
-                    consultationMode === "in_clinic"
-                      ? "border-teal-600 bg-teal-50/90 shadow-xs ring-1 ring-teal-500"
-                      : "border-slate-200 bg-white hover:bg-slate-50"
-                  }`}
-                >
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-                      consultationMode === "in_clinic" ? "bg-teal-600 text-white shadow-xs" : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    <Building2 className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-display text-xs font-extrabold text-navy">Offline In-Clinic</span>
-                      {consultationMode === "in_clinic" && (
-                        <span className="h-2 w-2 rounded-full bg-teal-600" />
-                      )}
-                    </div>
-                    <span className="text-[10.5px] text-slate-500 block">Hospital / OPD Walk-in</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setConsultationMode("online_video")}
-                  className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
-                    consultationMode === "online_video"
-                      ? "border-purple-600 bg-purple-50/90 shadow-xs ring-1 ring-purple-500"
-                      : "border-slate-200 bg-white hover:bg-slate-50"
-                  }`}
-                >
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-                      consultationMode === "online_video"
-                        ? "bg-purple-600 text-white shadow-xs"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    <Video className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-display text-xs font-extrabold text-navy">Online Video Call</span>
-                      {consultationMode === "online_video" && (
-                        <span className="h-2 w-2 rounded-full bg-purple-600" />
-                      )}
-                    </div>
-                    <span className="text-[10.5px] text-slate-500 block">Teleconsult & Digital Rx</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Date & Time Slot */}
-            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Consultation Mode Selector */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                  <Calendar className="inline h-3.5 w-3.5 mr-1 text-teal-600" /> Appointment Date
+                  Select Consultation Mode (कंसल्टेशन का प्रकार)
                 </label>
-                <input
-                  type="date"
-                  min={new Date().toISOString().split("T")[0]}
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-navy focus:border-teal-brand focus:outline-hidden"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                  <Clock className="inline h-3.5 w-3.5 mr-1 text-teal-600" /> Preferred Time Slot
-                </label>
-                <select
-                  value={selectedSlot}
-                  onChange={(e) => setSelectedSlot(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-navy focus:border-teal-brand focus:outline-hidden"
-                >
-                  {TIME_SLOTS.map((s) => (
-                    <option key={s.time} value={s.time}>
-                      {s.time} ({s.period})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Patient Auto-filled Details */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-navy flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 text-teal-600" /> Patient Details (G1 Health Card)
-                </span>
-                <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-mono font-bold text-teal-800">
-                  {patient.healthId}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-500">Name</label>
-                  <input
-                    type="text"
-                    value={patient.name}
-                    onChange={(e) => setPatient({ ...patient, name: e.target.value })}
-                    className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-500">Phone</label>
-                  <input
-                    type="text"
-                    value={patient.phone}
-                    onChange={(e) => setPatient({ ...patient, phone: e.target.value })}
-                    className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-500">Age</label>
-                  <input
-                    type="text"
-                    value={patient.age}
-                    onChange={(e) => setPatient({ ...patient, age: e.target.value })}
-                    className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-500">Blood Group</label>
-                  <input
-                    type="text"
-                    value={patient.bloodGroup}
-                    onChange={(e) => setPatient({ ...patient, bloodGroup: e.target.value })}
-                    className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Symptoms, Disease & Optional Prescription */}
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Primary Disease / Medical Problem (किस बीमारी या समस्या के लिए दिखा रहे हैं?)
-                </label>
-                <input
-                  type="text"
-                  value={disease}
-                  onChange={(e) => setDisease(e.target.value)}
-                  placeholder="e.g. Chest Discomfort, Diabetes, Severe Knee Pain, Migraine, Dengue Fever..."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-navy focus:border-teal-brand focus:outline-hidden"
-                  required
-                />
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {["Chest Pain / BP", "Diabetes / Sugar", "Knee / Joint Arthritis", "Migraine / Headache", "Fever / Dengue", "Skin Allergy"].map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setDisease(tag)}
-                      className="rounded-full bg-slate-100 hover:bg-teal-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 hover:text-teal-900 transition cursor-pointer"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setConsultationMode("in_clinic")}
+                    className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
+                      consultationMode === "in_clinic"
+                        ? "border-teal-600 bg-teal-50/90 shadow-xs ring-1 ring-teal-500"
+                        : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                        consultationMode === "in_clinic" ? "bg-teal-600 text-white shadow-xs" : "bg-slate-100 text-slate-600"
+                      }`}
                     >
-                      + {tag}
-                    </button>
-                  ))}
+                      <Building2 className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-display text-xs font-extrabold text-navy">Offline In-Clinic</span>
+                        {consultationMode === "in_clinic" && (
+                          <span className="h-2 w-2 rounded-full bg-teal-600" />
+                        )}
+                      </div>
+                      <span className="text-[10.5px] text-slate-500 block">Hospital / OPD Walk-in</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setConsultationMode("online_video")}
+                    className={`rounded-2xl border p-3 text-left transition flex items-center gap-3 cursor-pointer ${
+                      consultationMode === "online_video"
+                        ? "border-purple-600 bg-purple-50/90 shadow-xs ring-1 ring-purple-500"
+                        : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                        consultationMode === "online_video"
+                          ? "bg-purple-600 text-white shadow-xs"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      <Video className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-display text-xs font-extrabold text-navy">Online Video Call</span>
+                        {consultationMode === "online_video" && (
+                          <span className="h-2 w-2 rounded-full bg-purple-600" />
+                        )}
+                      </div>
+                      <span className="text-[10.5px] text-slate-500 block">Teleconsult & Digital Rx</span>
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Specific Symptoms / Duration Notes (लक्षण व परेशानी का विवरण)
-                </label>
-                <textarea
-                  rows={2}
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  placeholder="e.g. Experiencing pain since 3 days, especially during morning or exertion..."
-                  className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-medium text-navy focus:border-teal-brand focus:outline-hidden"
-                />
+              {/* Date & Time Slot */}
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                    <Calendar className="inline h-3.5 w-3.5 mr-1 text-teal-600" /> Appointment Date
+                  </label>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-navy focus:border-teal-brand focus:outline-hidden"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                    <Clock className="inline h-3.5 w-3.5 mr-1 text-teal-600" /> Preferred Time Slot
+                  </label>
+                  <select
+                    value={selectedSlot}
+                    onChange={(e) => setSelectedSlot(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-navy focus:border-teal-brand focus:outline-hidden"
+                  >
+                    {TIME_SLOTS.map((s) => (
+                      <option key={s.time} value={s.time}>
+                        {s.time} ({s.period})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Prescription / Past report upload */}
-              <div className="rounded-xl border border-dashed border-slate-300 p-3 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-800">
-                    <FileText className="h-4 w-4" />
+              {/* Patient Details */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-navy flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-teal-600" /> Patient Details (G1 Health Card)
                   </span>
+                  <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-mono font-bold text-teal-800">
+                    {patient.healthId}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                   <div>
-                    <p className="text-xs font-bold text-navy">Attach Previous Prescription / Test Report</p>
-                    <p className="text-[10px] text-slate-500">Optional · Uploads to MongoDB GridFS</p>
+                    <label className="text-[11px] font-semibold text-slate-500">Name</label>
+                    <input
+                      type="text"
+                      value={patient.name}
+                      onChange={(e) => setPatient({ ...patient, name: e.target.value })}
+                      className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy text-xs"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500">Phone</label>
+                    <input
+                      type="text"
+                      value={patient.phone}
+                      onChange={(e) => setPatient({ ...patient, phone: e.target.value })}
+                      className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy text-xs"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500">Age</label>
+                    <input
+                      type="text"
+                      value={patient.age}
+                      onChange={(e) => setPatient({ ...patient, age: e.target.value })}
+                      className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500">Blood Group</label>
+                    <input
+                      type="text"
+                      value={patient.bloodGroup}
+                      onChange={(e) => setPatient({ ...patient, bloodGroup: e.target.value })}
+                      className="w-full mt-0.5 rounded-lg border border-slate-200 bg-white p-2 font-bold text-navy text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Symptoms & Disease */}
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Primary Disease / Medical Problem (किस बीमारी या समस्या के लिए दिखा रहे हैं?)
+                  </label>
+                  <input
+                    type="text"
+                    value={disease}
+                    onChange={(e) => setDisease(e.target.value)}
+                    placeholder="e.g. Chest Discomfort, Diabetes, Severe Knee Pain, Migraine, Dengue Fever..."
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-navy focus:border-teal-brand focus:outline-hidden"
+                    required
+                  />
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {["Chest Pain / BP", "Diabetes / Sugar", "Knee / Joint Arthritis", "Migraine / Headache", "Fever / Dengue", "Skin Allergy"].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setDisease(tag)}
+                        className="rounded-full bg-slate-100 hover:bg-teal-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 hover:text-teal-900 transition cursor-pointer"
+                      >
+                        + {tag}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-navy shadow-2xs hover:bg-slate-50">
-                  <UploadCloud className="h-3.5 w-3.5 text-teal-600" />
-                  <span>{uploadingPrescription ? "Uploading..." : prescriptionUrl ? "File Attached ✓" : "Upload File"}</span>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    disabled={uploadingPrescription}
-                    onChange={handlePrescriptionUpload}
-                    className="hidden"
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Specific Symptoms / Duration Notes (लक्षण व परेशानी का विवरण)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={symptoms}
+                    onChange={(e) => setSymptoms(e.target.value)}
+                    placeholder="e.g. Experiencing pain since 3 days, especially during morning or exertion..."
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-medium text-navy focus:border-teal-brand focus:outline-hidden"
                   />
-                </label>
+                </div>
+
+                {/* Prescription upload */}
+                <div className="rounded-xl border border-dashed border-slate-300 p-3 flex items-center justify-between bg-slate-50/50">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-800">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-bold text-navy">Attach Previous Prescription / Test Report</p>
+                      <p className="text-[10px] text-slate-500">Optional · Uploads to MongoDB GridFS</p>
+                    </div>
+                  </div>
+
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-navy shadow-2xs hover:bg-slate-50">
+                    <UploadCloud className="h-3.5 w-3.5 text-teal-600" />
+                    <span>{uploadingPrescription ? "Uploading..." : prescriptionUrl ? "File Attached ✓" : "Upload File"}</span>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      disabled={uploadingPrescription}
+                      onChange={handlePrescriptionUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Payment Choice */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Payment Option</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentChoice("online")}
+                    className={`rounded-xl border p-3 text-left transition cursor-pointer ${
+                      paymentChoice === "online"
+                        ? "border-teal-brand bg-teal-50/50 ring-2 ring-teal-brand/30"
+                        : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-navy flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5 text-teal-600" /> Razorpay Online (Instant)
+                    </span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">UPI, Cards, NetBanking</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentChoice("pay_at_clinic")}
+                    className={`rounded-xl border p-3 text-left transition cursor-pointer ${
+                      paymentChoice === "pay_at_clinic"
+                        ? "border-teal-brand bg-teal-50/50 ring-2 ring-teal-brand/30"
+                        : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-navy block">Pay at Clinic Counter</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">Cash / Card on appointment day</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Payment Choice */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">Payment Option</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentChoice("online")}
-                  className={`rounded-xl border p-3 text-left transition ${
-                    paymentChoice === "online"
-                      ? "border-teal-brand bg-teal-50/40 ring-1 ring-teal-brand"
-                      : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <span className="text-xs font-bold text-navy block flex items-center gap-1">
-                    <CreditCard className="h-3.5 w-3.5 text-teal-600" /> Razorpay Online (Instant)
-                  </span>
-                  <span className="text-[10px] text-slate-500">UPI, Cards, NetBanking</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentChoice("pay_at_clinic")}
-                  className={`rounded-xl border p-3 text-left transition ${
-                    paymentChoice === "pay_at_clinic"
-                      ? "border-teal-brand bg-teal-50/40 ring-1 ring-teal-brand"
-                      : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <span className="text-xs font-bold text-navy block">Pay at Clinic Counter</span>
-                  <span className="text-[10px] text-slate-500">Cash / Card on appointment day</span>
-                </button>
+            {/* Sticky Action Footer */}
+            <div className="shrink-0 border-t border-slate-100 bg-slate-50/95 backdrop-blur-md px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+              <div className="hidden sm:block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Total Due</span>
+                <span className="font-display text-lg font-black text-navy">₹{consultationFee}</span>
+                <span className="text-[10px] text-emerald-700 font-semibold ml-1.5">({paymentChoice === 'online' ? 'Instant Online' : 'Pay at Clinic'})</span>
               </div>
-            </div>
 
-            {/* Submit Button */}
-            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting || uploadingPrescription}
-                className="w-full h-12 rounded-full font-display text-sm font-bold text-white shadow-lg shadow-teal-500/25 transition hover:opacity-95 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto sm:min-w-[240px] h-11 sm:h-12 px-6 rounded-full font-display text-xs sm:text-sm font-bold text-white shadow-lg shadow-teal-500/25 transition hover:opacity-95 flex items-center justify-center gap-2 cursor-pointer ml-auto"
                 style={{ background: "linear-gradient(135deg, #02C39A 0%, #00A896 100%)" }}
               >
                 {isSubmitting ? (
@@ -544,7 +552,7 @@ export default function DoctorBookingModal({
           </form>
         ) : (
           /* Confirmation Slip */
-          <div className="p-6 text-center space-y-4">
+          <div className="p-6 text-center space-y-4 overflow-y-auto">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <Check className="h-7 w-7" />
             </span>
@@ -556,7 +564,6 @@ export default function DoctorBookingModal({
               Your consultation with <strong className="text-navy">{confirmedBooking.doctorName}</strong> has been registered.
             </p>
 
-            {/* Digital Token Card */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 max-w-md mx-auto text-left space-y-3 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
                 <div>
@@ -585,7 +592,7 @@ export default function DoctorBookingModal({
                   <span className="text-slate-500 text-[11px]">Patient Name</span>
                   <p className="font-bold text-navy">{confirmedBooking.patientName} ({confirmedBooking.patientHealthId})</p>
                 </div>
-                <div>
+                <div className="col-span-2">
                   <span className="text-slate-500 text-[11px]">Clinic / Meeting Mode</span>
                   <p className="font-bold text-navy truncate">
                     {confirmedBooking.mode === "online_video" ? "Secure Video Link (WhatsApp/SMS)" : confirmedBooking.doctorAddress}
@@ -608,7 +615,7 @@ export default function DoctorBookingModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full bg-navy px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-navy/90"
+                className="rounded-full bg-navy px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-navy/90 cursor-pointer"
               >
                 Done
               </button>

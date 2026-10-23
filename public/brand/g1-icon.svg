@@ -1,18 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="G1 icon">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="G1 icon">
   <defs>
     <linearGradient id="t" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#02C39A"/>
       <stop offset="55%" stop-color="#00A896"/>
-      <stop offset="100%" stop-color="#0B2545"/>
+      <stop offset="100%" stop-color="#087F79"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="24" fill="#0B2545"/>
+  <rect width="96" height="96" x="2" y="2" rx="22" fill="#0A223E" stroke="#00A896" stroke-width="2.5" stroke-opacity="0.45"/>
   <g transform="translate(12,12) scale(0.76)">
     <path d="M50 4 C78 4 100 26 100 54 C100 82 78 100 50 100 C30 100 12 88 6 70 C12 84 28 92 46 92 C70 92 90 74 90 52 C90 30 70 12 46 12 C32 12 20 18 12 28 C18 12 32 4 50 4 Z" fill="url(#t)"/>
     <path d="M4 62 C24 78 48 80 72 68 C84 62 94 54 100 46 C96 60 84 72 66 78 C44 86 20 82 4 62 Z" fill="#02C39A"/>
     <g transform="translate(37,36)">
-      <rect x="6" y="0" width="16" height="36" rx="2" fill="#fff"/>
-      <rect x="0" y="10" width="28" height="16" rx="2" fill="#fff"/>
+      <rect x="6" y="0" width="16" height="36" rx="3" fill="#fff"/>
+      <rect x="0" y="10" width="28" height="16" rx="3" fill="#fff"/>
     </g>
   </g>
 </svg>
